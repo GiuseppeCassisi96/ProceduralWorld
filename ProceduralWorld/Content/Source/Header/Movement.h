@@ -10,11 +10,12 @@ class Movement
 public:
 	float currentTime = 0.0, lastTime = 0.0, deltaTime = 0.0;
 	float yaw = 0.0f, pitch = 0.0f;
-	float rotationSensitivity = 0.1f;
+	float mouseSensitivity = 0.08f;
 	float lastX = WIDTH / 2, lastY = HEIGHT / 2;
 	bool firstMouse = true;
 	glm::vec3 cameraDirection;
 	glm::vec3 position;
+
 	//Axes of player
 	glm::vec3 upAxe, forwardAxe, rightAxe;
 	const glm::vec3 centerOfScene{ glm::vec3(0.0f) };

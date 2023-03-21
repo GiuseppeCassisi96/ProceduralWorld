@@ -39,4 +39,8 @@
       <Filter>File di intestazione</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Source\Cpp\Shaders\TestShader.vert" />
+    <None Include="Content\Source\Cpp\Shaders\TestShader.frag" />
+  </ItemGroup>
 </Project>
