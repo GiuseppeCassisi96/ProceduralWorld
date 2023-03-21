@@ -133,10 +133,12 @@
     <ClCompile Include="Content\API\GLAD\glad.c" />
     <ClCompile Include="Content\Source\Cpp\Application.cpp" />
     <ClCompile Include="Content\Source\Cpp\Movement.cpp" />
+    <ClCompile Include="Content\Source\Cpp\Shader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Content\Source\Header\Constants.h" />
     <ClInclude Include="Content\Source\Header\Movement.h" />
+    <ClInclude Include="Content\Source\Header\Shader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

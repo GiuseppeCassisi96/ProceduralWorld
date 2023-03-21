@@ -44,7 +44,6 @@ GLFWwindow* Setup(GLFWwindow* window)
 
 int main()
 {
-   
     GLFWwindow* window = nullptr;
     window = Setup(window);
     glm::mat4 WorldCamera = glm::mat4(1.0f);
