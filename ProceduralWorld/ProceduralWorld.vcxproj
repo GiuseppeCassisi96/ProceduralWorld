@@ -104,7 +104,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\UNIMI\ProceduralWorldProgetto\ProceduralWorld\ProceduralWorld\Content\API\GLAD;C:\UNIMI\ProceduralWorldProgetto\ProceduralWorld\ProceduralWorld\Content\API;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\UNIMI\ProceduralWorldProgetto\ProceduralWorld\ProceduralWorld\Content\API\GLAD;C:\UNIMI\ProceduralWorldProgetto\ProceduralWorld\ProceduralWorld\Content\Source\Header;C:\UNIMI\ProceduralWorldProgetto\ProceduralWorld\ProceduralWorld\Content\API;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -132,6 +132,17 @@
   <ItemGroup>
     <ClCompile Include="Content\API\GLAD\glad.c" />
     <ClCompile Include="Content\Source\Cpp\Application.cpp" />
+    <ClCompile Include="Content\Source\Cpp\Movement.cpp" />
+    <ClCompile Include="Content\Source\Cpp\Shader.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Content\Source\Header\Constants.h" />
+    <ClInclude Include="Content\Source\Header\Movement.h" />
+    <ClInclude Include="Content\Source\Header\Shader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Source\Cpp\Shaders\TestShader.frag" />
+    <None Include="Content\Source\Cpp\Shaders\TestShader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

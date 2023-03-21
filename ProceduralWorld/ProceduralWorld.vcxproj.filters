@@ -21,5 +21,26 @@
     <ClCompile Include="Content\API\GLAD\glad.c">
       <Filter>File di origine</Filter>
     </ClCompile>
+    <ClCompile Include="Content\Source\Cpp\Movement.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="Content\Source\Cpp\Shader.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Content\Source\Header\Movement.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\Source\Header\Constants.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\Source\Header\Shader.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Source\Cpp\Shaders\TestShader.vert" />
+    <None Include="Content\Source\Cpp\Shaders\TestShader.frag" />
   </ItemGroup>
 </Project>
