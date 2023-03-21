@@ -49,36 +49,33 @@ void Movement::Move(GLFWwindow* window, glm::mat4& viewMatrix)
 
 void Movement::Rotate(double xpos, double ypos)
 {
-	float fXpos = static_cast<float>(xpos);
-	float fYpos = static_cast<float>(ypos);
 	if (firstMouse)
 	{
-		lastX = fXpos;
-		lastY = fYpos;
-	}
-	float xOffset = fXpos - lastX;
-	float yOffset = lastY - fYpos;
-	lastX = fXpos;
-	lastY = fYpos;
-	xOffset *= rotationSensitivity;
-	yOffset *= rotationSensitivity;
-	yaw += xOffset;
-	pitch -= yOffset;
-	if (pitch > 89.0f)
-	{
-		pitch = 89.0f;
-	}
-	else if (pitch < -89.0f)
-	{
-		pitch = -89.0f;
-	}
-	if (!firstMouse)
-	{
-		cameraDirection.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-		cameraDirection.y = sin(glm::radians(pitch));
-		cameraDirection.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-		forwardAxe = glm::normalize(cameraDirection);
+		lastX = xpos;
+		lastY = ypos;
 		firstMouse = false;
 	}
 
+	//I compute the new xPos and yPos offset
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos;
+	lastX = xpos;
+	lastY = ypos;
+
+	xoffset *= mouseSensitivity;
+	yoffset *= mouseSensitivity;
+
+	yaw += xoffset;
+	pitch -= yoffset;
+
+	if (pitch > 89.0f)
+		pitch = 89.0f;
+	if (pitch < -89.0f)
+		pitch = -89.0f;
+
+	glm::vec3 direction;
+	direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	direction.y = sin(glm::radians(pitch));
+	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	forwardAxe = glm::normalize(direction);
 }
