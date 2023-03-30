@@ -3,10 +3,7 @@
 #include "GLFW/Include/glfw3.h"
 #include "Movement.h"
 #include "Shader.h"
-
-
 #include <iostream>
-
 #include "HeightMap.h"
 #include "Texture.h"
 
@@ -21,10 +18,10 @@ glm::mat4 WorldProjection = glm::perspective(45.0f, static_cast<float>(WIDTH) / 
     0.1f, 1000000.0f);
 Movement playerMovement{ glm::vec3(0.0f, 0.0f, 7.0f), WorldCamera };
 std::string shadersPath = "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/ProceduralWorld/Content/Source/Cpp/Shaders/";
-float amplitude = 1.7f;
-float frequency = 1.0f;
+float amplitude = 1.0f;
+float frequency = 3.0f;
 int octaves = 10;
-float seed = 0.3f;
+const float seed = 1.0f;
 HeightMap ElevationMap(MAP_RESOLUTION, MAP_RESOLUTION);
 
 int main()
@@ -48,7 +45,7 @@ int main()
     Shader testShader{ (shadersPath + "TerrainShader.vert").c_str(),
                       (shadersPath + "TerrainShader.frag").c_str() };
 
-    TerrainGeneration terrain;
+    TerrainGeneration terrain (ElevationMap);
 	glm::mat4 CubeModel = glm::mat4(1.0f);
 
 
@@ -115,8 +112,8 @@ GLFWwindow* Setup(GLFWwindow* window)
 {
     // glfw: initialize and configure
     glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 #ifdef __APPLE__

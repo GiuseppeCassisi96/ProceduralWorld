@@ -2,7 +2,7 @@
 
 
 
-TerrainGeneration::TerrainGeneration()
+TerrainGeneration::TerrainGeneration(HeightMap& ElevationMap) : ElevationMap(std::move(ElevationMap))
 {
     ComputeMesh();
     SetupBuffers();
@@ -23,7 +23,7 @@ void TerrainGeneration::ComputeMesh()
             vertex.Position = glm::vec3
             (
                 -width / 2.0f + width * fi / fMeshResolution //X
-                , 0.0f //Y
+                , ElevationMap.At(i, j) * HEIGHT_SCALE //Y
                 , -height / 2.0f + height * fj / fMeshResolution //Z
             );
             vertex.UVCoords = glm::vec2

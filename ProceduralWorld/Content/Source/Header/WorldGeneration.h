@@ -1,5 +1,6 @@
 #pragma once
 #include "vector"
+#include "HeightMap.h"
 #include "GLM/include/vec2.hpp"
 #include "GLM/include/vec3.hpp"
 #include "Constants.h"
@@ -9,8 +10,9 @@
 class TerrainGeneration
 {
 public:
-	TerrainGeneration();
+	TerrainGeneration(HeightMap& ElevationMap);
 	void DrawTerrain();
+	HeightMap ElevationMap;
 private:
 	void ComputeMesh();
 	void SetupBuffers();
