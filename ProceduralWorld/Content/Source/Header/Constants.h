@@ -1,3 +1,4 @@
 #pragma once
-constexpr float WIDTH = 1920.0f, HEIGHT = 1080.0f;
+constexpr int WIDTH = 1920, HEIGHT = 1080;
 constexpr float PLAYER_SPEED = 20.0f;
+constexpr int MAP_RESOLUTION = 200;
