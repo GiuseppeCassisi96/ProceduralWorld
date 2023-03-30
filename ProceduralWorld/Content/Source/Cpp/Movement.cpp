@@ -49,18 +49,20 @@ void Movement::Move(GLFWwindow* window, glm::mat4& viewMatrix)
 
 void Movement::Rotate(double xpos, double ypos)
 {
+	float fXPos = static_cast<float>(xpos);
+	float fYPos = static_cast<float>(ypos);
 	if (firstMouse)
 	{
-		lastX = xpos;
-		lastY = ypos;
+		lastX = fXPos;
+		lastY = fYPos;
 		firstMouse = false;
 	}
 
 	//I compute the new xPos and yPos offset
-	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos;
-	lastX = xpos;
-	lastY = ypos;
+	float xoffset = fXPos - lastX;
+	float yoffset = lastY - fYPos;
+	lastX = fXPos;
+	lastY = fYPos;
 
 	xoffset *= mouseSensitivity;
 	yoffset *= mouseSensitivity;

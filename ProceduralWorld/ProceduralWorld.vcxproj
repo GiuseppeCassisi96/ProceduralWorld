@@ -135,6 +135,7 @@
     <ClCompile Include="Content\Source\Cpp\Movement.cpp" />
     <ClCompile Include="Content\Source\Cpp\Shader.cpp" />
     <ClCompile Include="Content\Source\Cpp\HeightMap.cpp" />
+    <ClCompile Include="Content\Source\Cpp\Texture.cpp" />
     <ClCompile Include="Content\Source\Cpp\WorldGeneration.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -142,9 +143,11 @@
     <ClInclude Include="Content\Source\Header\HeightMap.h" />
     <ClInclude Include="Content\Source\Header\Movement.h" />
     <ClInclude Include="Content\Source\Header\Shader.h" />
+    <ClInclude Include="Content\Source\Header\Texture.h" />
     <ClInclude Include="Content\Source\Header\WorldGeneration.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Content\Source\Cpp\Shaders\NoiseGeneration.comp" />
     <None Include="Content\Source\Cpp\Shaders\TerrainShader.frag" />
     <None Include="Content\Source\Cpp\Shaders\TerrainShader.vert" />
   </ItemGroup>

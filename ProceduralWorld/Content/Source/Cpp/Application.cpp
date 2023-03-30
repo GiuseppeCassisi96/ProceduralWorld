@@ -7,25 +7,46 @@
 
 #include <iostream>
 
+#include "HeightMap.h"
+#include "Texture.h"
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 GLFWwindow* Setup(GLFWwindow* window);
+//Global vars
 bool isWireframe = false;
 glm::mat4 WorldCamera = glm::mat4(1.0f);
 glm::mat4 WorldProjection = glm::perspective(45.0f, static_cast<float>(WIDTH) / static_cast<float>(HEIGHT),
     0.1f, 1000000.0f);
 Movement playerMovement{ glm::vec3(0.0f, 0.0f, 7.0f), WorldCamera };
-
+std::string shadersPath = "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/ProceduralWorld/Content/Source/Cpp/Shaders/";
+float amplitude = 1.7f;
+float frequency = 1.0f;
+int octaves = 10;
+float seed = 0.3f;
+HeightMap ElevationMap(MAP_RESOLUTION, MAP_RESOLUTION);
 
 int main()
 {
     GLFWwindow* window = nullptr;
     window = Setup(window);
 
+    //Creation of HeightMap
+    Shader NoiseShader{ (shadersPath + "NoiseGeneration.comp").c_str() };
+    NoiseShader.UseProgram();
+    NoiseShader.SetUniformFloat("amplitude", amplitude);
+    NoiseShader.SetUniformFloat("frequency", frequency);
+    NoiseShader.SetUniformInt("octaves", octaves);
+    NoiseShader.SetUniformFloat("seed", seed);
+    Texture NoiseText{ GL_TEXTURE0, MAP_RESOLUTION, MAP_RESOLUTION };
+    NoiseText.BindTexture(GL_TEXTURE0);
+    NoiseShader.DispatchCompute();
+    NoiseText.GetValuesFromTexture(ElevationMap.GetData());
+    NoiseText.BindTexture(GL_TEXTURE0);
 
-    Shader testShader{ "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/ProceduralWorld/Content/Source/Cpp/Shaders/TestShader.vert",
-    	              "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/ProceduralWorld/Content/Source/Cpp/Shaders/TestShader.frag"};
+    Shader testShader{ (shadersPath + "TerrainShader.vert").c_str(),
+                      (shadersPath + "TerrainShader.frag").c_str() };
 
     TerrainGeneration terrain;
 	glm::mat4 CubeModel = glm::mat4(1.0f);
@@ -83,7 +104,6 @@ void processInput(GLFWwindow* window)
     }
         
 }
-
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -91,7 +111,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }
-
 GLFWwindow* Setup(GLFWwindow* window)
 {
     // glfw: initialize and configure
