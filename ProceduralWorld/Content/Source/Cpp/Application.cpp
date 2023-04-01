@@ -1,3 +1,7 @@
+#include "IMGUI/imgui.h"
+#include "IMGUI/imgui_impl_glfw.h"
+#include "IMGUI/imgui_impl_opengl3.h"
+
 #include "WorldGeneration.h"
 #include "GLAD/Include/glad.h"
 #include "GLFW/Include/glfw3.h"
@@ -7,10 +11,12 @@
 #include "HeightMap.h"
 #include "Texture.h"
 
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 GLFWwindow* Setup(GLFWwindow* window);
+
 //Global vars
 bool isWireframe = false;
 glm::mat4 WorldCamera = glm::mat4(1.0f);
@@ -28,6 +34,13 @@ int main()
 {
     GLFWwindow* window = nullptr;
     window = Setup(window);
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui::StyleColorsClassic();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 460");
 
     //Creation of HeightMap
     Shader NoiseShader{ (shadersPath + "NoiseGeneration.comp").c_str() };
@@ -62,6 +75,10 @@ int main()
         processInput(window);
         playerMovement.Move(window, WorldCamera);
 
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
         // render
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -79,11 +96,21 @@ int main()
         
         terrain.DrawTerrain();
 
+        ImGui::Begin("Hello ImGUI");
+        ImGui::Text("Test of ImGUI");
+        ImGui::End();
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     glfwTerminate();
