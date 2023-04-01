@@ -20,6 +20,7 @@ GLFWwindow* Setup(GLFWwindow* window);
 
 //Global vars
 bool isWireframe = false;
+bool isMouseVisible = false;
 glm::mat4 WorldCamera = glm::mat4(1.0f);
 glm::mat4 WorldProjection = glm::perspective(45.0f, static_cast<float>(WIDTH) / static_cast<float>(HEIGHT),
     0.1f, 1000000.0f);
@@ -39,13 +40,6 @@ int main()
     int oldOctaves = octaves;
     GLFWwindow* window = nullptr;
     window = Setup(window);
-
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    ImGui::StyleColorsLight();
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 460");
 
     //Creation of HeightMap
     Shader NoiseShader{ (shadersPath + "NoiseGeneration.comp").c_str() };
@@ -145,7 +139,19 @@ void processInput(GLFWwindow* window)
     {
         isWireframe = !isWireframe;
     }
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+    {
+        isMouseVisible = !isMouseVisible;
+        if(isMouseVisible)
+        {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        }
+        else
+        {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        }
         
+    }
 }
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -176,7 +182,7 @@ GLFWwindow* Setup(GLFWwindow* window)
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-   // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
 
     // glad: load all OpenGL function pointers
@@ -186,11 +192,20 @@ GLFWwindow* Setup(GLFWwindow* window)
         exit(-1);
     }
     glEnable(GL_DEPTH_TEST);
+
+    //ImGUI setup
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui::StyleColorsLight();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 460");
     return window;
 }
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-    playerMovement.Rotate(xpos, ypos);
+    if(!isMouseVisible)
+		playerMovement.Rotate(xpos, ypos);
 }
 void recompute_heightMap(float frequency, Shader& NoiseShader, Texture& NoiseText, TerrainGeneration& terrain)
 {
