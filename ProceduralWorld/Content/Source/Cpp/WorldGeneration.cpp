@@ -69,8 +69,8 @@ void TerrainGeneration::SetupBuffers()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 
 
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(TerrainVertex), vertices.data(), GL_STATIC_DRAW);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(TerrainVertex), vertices.data(), GL_DYNAMIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_DYNAMIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(TerrainVertex), (void*)0);
     glEnableVertexAttribArray(0);
@@ -81,7 +81,7 @@ void TerrainGeneration::SetupBuffers()
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(TerrainVertex), (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-    glBindVertexArray(0);
+    //glBindVertexArray(0);
 
 }
 
@@ -90,6 +90,19 @@ void TerrainGeneration::DrawTerrain()
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+}
+
+void TerrainGeneration::ReComputeMesh()
+{
+    for (int i = 0; i < MAP_RESOLUTION; i++)
+    {
+        for (int j = 0; j < MAP_RESOLUTION; j++)
+        {
+            vertices[i * MAP_RESOLUTION + j].Position.y = ElevationMap.At(i, j) * HEIGHT_SCALE;
+        }
+    }
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(TerrainVertex), vertices.data(), GL_DYNAMIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_DYNAMIC_DRAW);
 }
 
 

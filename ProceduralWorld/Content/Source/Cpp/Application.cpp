@@ -15,6 +15,7 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void recompute_heightMap(float frequency, Shader& NoiseShader, Texture& NoiseText, TerrainGeneration& terrain);
 GLFWwindow* Setup(GLFWwindow* window);
 
 //Global vars
@@ -24,21 +25,25 @@ glm::mat4 WorldProjection = glm::perspective(45.0f, static_cast<float>(WIDTH) / 
     0.1f, 1000000.0f);
 Movement playerMovement{ glm::vec3(0.0f, 0.0f, 7.0f), WorldCamera };
 std::string shadersPath = "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/ProceduralWorld/Content/Source/Cpp/Shaders/";
-float amplitude = 1.0f;
+float amplitude = 2.0f;
 float frequency = 3.0f;
 int octaves = 10;
-const float seed = 1.0f;
+float seed = 1.0f;
 HeightMap ElevationMap(MAP_RESOLUTION, MAP_RESOLUTION);
 
 int main()
 {
+    float oldFrequency = frequency;
+    float oldAmplitude = amplitude;
+    float oldSeed = seed;
+    int oldOctaves = octaves;
     GLFWwindow* window = nullptr;
     window = Setup(window);
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    ImGui::StyleColorsClassic();
+    ImGui::StyleColorsLight();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 460");
 
@@ -55,7 +60,7 @@ int main()
     NoiseText.GetValuesFromTexture(ElevationMap.GetData());
     NoiseText.BindTexture(GL_TEXTURE0);
 
-    Shader testShader{ (shadersPath + "TerrainShader.vert").c_str(),
+    Shader terrainShader{ (shadersPath + "TerrainShader.vert").c_str(),
                       (shadersPath + "TerrainShader.frag").c_str() };
 
     TerrainGeneration terrain (ElevationMap);
@@ -63,10 +68,10 @@ int main()
 
 
     CubeModel = glm::translate(CubeModel, glm::vec3(0.0f));
-    testShader.UseProgram();
-    testShader.SetUniformMatrix4("model", CubeModel);
-    testShader.SetUniformMatrix4("view", WorldCamera);
-    testShader.SetUniformMatrix4("proj", WorldProjection);
+    terrainShader.UseProgram();
+    terrainShader.SetUniformMatrix4("model", CubeModel);
+    terrainShader.SetUniformMatrix4("view", WorldCamera);
+    terrainShader.SetUniformMatrix4("proj", WorldProjection);
     
     // render loop
     while (!glfwWindowShouldClose(window))
@@ -82,9 +87,9 @@ int main()
         // render
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        testShader.UseProgram();
-        testShader.SetUniformMatrix4("view", WorldCamera);
-        testShader.SetUniformMatrix4("proj", WorldProjection);
+        terrainShader.UseProgram();
+        terrainShader.SetUniformMatrix4("view", WorldCamera);
+        terrainShader.SetUniformMatrix4("proj", WorldProjection);
         if (isWireframe)
         {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -96,12 +101,26 @@ int main()
         
         terrain.DrawTerrain();
 
-        ImGui::Begin("Hello ImGUI");
-        ImGui::Text("Test of ImGUI");
+        ImGui::Begin("ProceduralWorld control panel ");
+        ImGui::Text("Here you can modify all terrain generation parameters");
+        ImGui::SliderFloat("Frequency", &frequency, 0.1f, 3.0f);
+        ImGui::SliderFloat("Amplitude", &amplitude, 0.1f, 2.0f);
+        ImGui::SliderFloat("Seed", &seed, 0.1f, 1.0f);
+        ImGui::SliderInt("Octaves", &octaves, 2, 10);
         ImGui::End();
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        if(oldFrequency != frequency || oldAmplitude != amplitude || oldOctaves != octaves || oldSeed != seed)
+        {
+            recompute_heightMap(frequency, NoiseShader, NoiseText, terrain);
+            oldFrequency = frequency;
+            oldAmplitude = amplitude;
+            oldOctaves = octaves;
+            oldSeed = seed;
+            terrain.ReComputeMesh();
+        }
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);
@@ -157,7 +176,7 @@ GLFWwindow* Setup(GLFWwindow* window)
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+   // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
 
     // glad: load all OpenGL function pointers
@@ -172,4 +191,16 @@ GLFWwindow* Setup(GLFWwindow* window)
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
     playerMovement.Rotate(xpos, ypos);
+}
+void recompute_heightMap(float frequency, Shader& NoiseShader, Texture& NoiseText, TerrainGeneration& terrain)
+{
+    NoiseShader.UseProgram();
+    NoiseShader.SetUniformFloat("amplitude", amplitude);
+    NoiseShader.SetUniformFloat("frequency", frequency);
+    NoiseShader.SetUniformInt("octaves", octaves);
+    NoiseShader.SetUniformFloat("seed", seed);
+    NoiseText.BindTexture(GL_TEXTURE0);
+    NoiseShader.DispatchCompute();
+    NoiseText.GetValuesFromTexture(terrain.ElevationMap.GetData());
+    NoiseText.BindTexture(GL_TEXTURE0);
 }
