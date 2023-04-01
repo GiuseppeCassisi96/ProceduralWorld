@@ -12,6 +12,7 @@ class TerrainGeneration
 public:
 	TerrainGeneration(HeightMap& ElevationMap);
 	void DrawTerrain();
+	void ReComputeMesh();
 	HeightMap ElevationMap;
 private:
 	void ComputeMesh();

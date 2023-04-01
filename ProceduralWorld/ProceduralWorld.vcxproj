@@ -131,6 +131,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Content\API\GLAD\glad.c" />
+    <ClCompile Include="Content\API\IMGUI\imgui.cpp" />
+    <ClCompile Include="Content\API\IMGUI\imgui_demo.cpp" />
+    <ClCompile Include="Content\API\IMGUI\imgui_draw.cpp" />
+    <ClCompile Include="Content\API\IMGUI\imgui_impl_glfw.cpp" />
+    <ClCompile Include="Content\API\IMGUI\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="Content\API\IMGUI\imgui_tables.cpp" />
+    <ClCompile Include="Content\API\IMGUI\imgui_widgets.cpp" />
     <ClCompile Include="Content\Source\Cpp\Application.cpp" />
     <ClCompile Include="Content\Source\Cpp\Movement.cpp" />
     <ClCompile Include="Content\Source\Cpp\Shader.cpp" />
@@ -139,6 +146,15 @@
     <ClCompile Include="Content\Source\Cpp\WorldGeneration.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Content\API\IMGUI\imconfig.h" />
+    <ClInclude Include="Content\API\IMGUI\imgui.h" />
+    <ClInclude Include="Content\API\IMGUI\imgui_impl_glfw.h" />
+    <ClInclude Include="Content\API\IMGUI\imgui_impl_opengl3.h" />
+    <ClInclude Include="Content\API\IMGUI\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="Content\API\IMGUI\imgui_internal.h" />
+    <ClInclude Include="Content\API\IMGUI\imstb_rectpack.h" />
+    <ClInclude Include="Content\API\IMGUI\imstb_textedit.h" />
+    <ClInclude Include="Content\API\IMGUI\imstb_truetype.h" />
     <ClInclude Include="Content\Source\Header\Constants.h" />
     <ClInclude Include="Content\Source\Header\HeightMap.h" />
     <ClInclude Include="Content\Source\Header\Movement.h" />
