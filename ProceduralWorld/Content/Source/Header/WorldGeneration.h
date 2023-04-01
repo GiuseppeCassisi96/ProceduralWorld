@@ -17,6 +17,7 @@ public:
 private:
 	void ComputeMesh();
 	void SetupBuffers();
+	void ComputeNormals();
 	struct TerrainVertex
 	{
 		glm::vec3 Position;

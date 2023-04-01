@@ -1,5 +1,6 @@
 #include "WorldGeneration.h"
 
+#include <GLM/include/ext/quaternion_geometric.hpp>
 
 
 TerrainGeneration::TerrainGeneration(HeightMap& ElevationMap) : ElevationMap(std::move(ElevationMap))
@@ -34,8 +35,9 @@ void TerrainGeneration::ComputeMesh()
             vertex.Normal = glm::vec3(0.0f);
             vertices.push_back(vertex);
         }
+        
     }
-
+    
 
     int rowOffset = 0;
     for (int i = 0; i < MAP_RESOLUTION - 1; i++)
@@ -56,6 +58,7 @@ void TerrainGeneration::ComputeMesh()
         }
         rowOffset += MAP_RESOLUTION;
     }
+    ComputeNormals();
 }
 
 void TerrainGeneration::SetupBuffers()
@@ -85,6 +88,35 @@ void TerrainGeneration::SetupBuffers()
 
 }
 
+void TerrainGeneration::ComputeNormals()
+{
+    for(int i = 0; i < MAP_RESOLUTION - 1; i++)
+    {
+	    for(int j = 0; j < MAP_RESOLUTION - 1; j++)
+	    {
+            const int index = i * MAP_RESOLUTION + j;
+            glm::vec3 firstEdge = vertices[index + 1].Position - vertices[index].Position;
+            glm::vec3 secondEdge = vertices[index + MAP_RESOLUTION].Position - vertices[index].Position;
+            vertices[index].Normal = glm::normalize(glm::cross(firstEdge, secondEdge));
+	    }
+    }
+    for(int i = 0; i < MAP_RESOLUTION - 1; i++)
+    {
+        const int index = i * MAP_RESOLUTION + (MAP_RESOLUTION - 1);
+        glm::vec3 firstEdge = vertices[index - 1].Position - vertices[index].Position;
+        glm::vec3 secondEdge = vertices[index + MAP_RESOLUTION].Position - vertices[index].Position;
+        vertices[index].Normal = glm::normalize(glm::cross(secondEdge, firstEdge));
+    }
+
+    for (int j = 0; j < MAP_RESOLUTION - 1; j++)
+    {
+        const int index = (MAP_RESOLUTION - 1) * MAP_RESOLUTION + j;
+        glm::vec3 firstEdge = vertices[index + 1].Position - vertices[index].Position;
+        glm::vec3 secondEdge = vertices[index - MAP_RESOLUTION].Position - vertices[index].Position;
+        vertices[index].Normal = glm::normalize(glm::cross(secondEdge, firstEdge));
+    }
+}
+
 void TerrainGeneration::DrawTerrain()
 {
     glBindVertexArray(VAO);
@@ -101,6 +133,7 @@ void TerrainGeneration::ReComputeMesh()
             vertices[i * MAP_RESOLUTION + j].Position.y = ElevationMap.At(i, j) * HEIGHT_SCALE;
         }
     }
+    ComputeNormals();
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(TerrainVertex), vertices.data(), GL_DYNAMIC_DRAW);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_DYNAMIC_DRAW);
 }
