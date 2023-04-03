@@ -4,7 +4,7 @@
 //Input vars
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;
-layout (location = 2) in vec3 aUVCoord;
+layout (location = 2) in vec2 aUVCoord;
 
 uniform mat4 model;         
 uniform mat4 view;            
@@ -16,6 +16,7 @@ uniform vec3 cameraPos;
 out vec3 vNormal;
 out vec3 viewDir;
 out vec3 vlightDir;
+out vec2 vUVCoord;
 void main()
 {
 	//Vertex position in world space
@@ -27,5 +28,6 @@ void main()
 	//Light direction in world space
 	vlightDir = (model * vec4(lightDir, 0.0)).xyz;
 	vNormal = normalize( normalMatrix * aNormal);
+	vUVCoord = aUVCoord;
 	gl_Position = proj * view * worldVertexPos;
 }

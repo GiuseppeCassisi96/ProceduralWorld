@@ -138,6 +138,7 @@
     <ClCompile Include="Content\API\IMGUI\imgui_impl_opengl3.cpp" />
     <ClCompile Include="Content\API\IMGUI\imgui_tables.cpp" />
     <ClCompile Include="Content\API\IMGUI\imgui_widgets.cpp" />
+    <ClCompile Include="Content\API\STB_IMAGE\stb_image.cpp" />
     <ClCompile Include="Content\Source\Cpp\Application.cpp" />
     <ClCompile Include="Content\Source\Cpp\Movement.cpp" />
     <ClCompile Include="Content\Source\Cpp\Shader.cpp" />

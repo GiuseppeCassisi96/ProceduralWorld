@@ -10,10 +10,11 @@
 class TerrainGeneration
 {
 public:
-	TerrainGeneration(HeightMap& ElevationMap);
+	TerrainGeneration(HeightMap& ElevationMap, HeightMap& BiomeMap);
 	void DrawTerrain();
 	void ReComputeMesh();
 	HeightMap ElevationMap;
+	HeightMap BiomeMap;
 
 	struct TerrainMat
 	{
