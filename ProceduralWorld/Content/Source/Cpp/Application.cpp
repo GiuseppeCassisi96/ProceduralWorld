@@ -10,6 +10,10 @@
 #include <iostream>
 #include "HeightMap.h"
 #include "Texture.h"
+#include <GLM/include/glm.hpp>
+#include <GLM/include/gtc/matrix_transform.hpp>
+#include <GLM/include/gtc/matrix_inverse.hpp>
+#include <GLM/include/gtc/type_ptr.hpp>
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -31,6 +35,9 @@ float frequency = 3.0f;
 int octaves = 10;
 float seed = 1.0f;
 HeightMap ElevationMap(MAP_RESOLUTION, MAP_RESOLUTION);
+//Light
+glm::vec3 lightDir = glm::vec3(1.0f, 0.3f, 0.0f);
+float lightIntensity = 1.5f;
 
 int main()
 {
@@ -58,14 +65,27 @@ int main()
                       (shadersPath + "TerrainShader.frag").c_str() };
 
     TerrainGeneration terrain (ElevationMap);
-	glm::mat4 CubeModel = glm::mat4(1.0f);
+	glm::mat4 TerrainModel = glm::mat4(1.0f);
+    glm::mat3 TerrainNormalMatrix = glm::mat3(1.0f);
 
-
-    CubeModel = glm::translate(CubeModel, glm::vec3(0.0f));
+    TerrainModel = glm::translate(TerrainModel, glm::vec3(0.0f));
+    TerrainNormalMatrix = glm::inverseTranspose(glm::mat3(TerrainModel));
     terrainShader.UseProgram();
-    terrainShader.SetUniformMatrix4("model", CubeModel);
+    terrainShader.SetUniformMatrix4("model", TerrainModel);
     terrainShader.SetUniformMatrix4("view", WorldCamera);
     terrainShader.SetUniformMatrix4("proj", WorldProjection);
+    terrainShader.SetUniformMatrix3("normalMatrix", TerrainNormalMatrix);
+    terrainShader.SetUniformVec3("viewPos", playerMovement.position);
+    terrainShader.SetUniformVec3("ambientColor", terrain.terrainMaterial.ambientColor);
+    terrainShader.SetUniformVec3("diffuseColor", terrain.terrainMaterial.diffusiveColor);
+    terrainShader.SetUniformVec3("specularColor", terrain.terrainMaterial.specularColor);
+    terrainShader.SetUniformVec3("lightDir", lightDir);
+    terrainShader.SetUniformFloat("Ka", terrain.terrainMaterial.Ka);
+    terrainShader.SetUniformFloat("Ks", terrain.terrainMaterial.Ks);
+    terrainShader.SetUniformFloat("Kd", terrain.terrainMaterial.Kd);
+    terrainShader.SetUniformFloat("shininess", terrain.terrainMaterial.shininess);
+    terrainShader.SetUniformFloat("lightIntensity", lightIntensity);
+
     
     // render loop
     while (!glfwWindowShouldClose(window))
@@ -84,6 +104,9 @@ int main()
         terrainShader.UseProgram();
         terrainShader.SetUniformMatrix4("view", WorldCamera);
         terrainShader.SetUniformMatrix4("proj", WorldProjection);
+        terrainShader.SetUniformVec3("cameraPos", playerMovement.position);
+        terrainShader.SetUniformVec3("lightDir", lightDir);
+        terrainShader.SetUniformFloat("lightIntensity", lightIntensity);
         if (isWireframe)
         {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -99,8 +122,11 @@ int main()
         ImGui::Text("Here you can modify all terrain generation parameters");
         ImGui::SliderFloat("Frequency", &frequency, 0.1f, 3.0f);
         ImGui::SliderFloat("Amplitude", &amplitude, 0.1f, 2.0f);
-        ImGui::SliderFloat("Seed", &seed, 0.1f, 1.0f);
+        ImGui::SliderFloat("Seed", &seed, 0.1f, 3.0f);
         ImGui::SliderInt("Octaves", &octaves, 2, 10);
+        ImGui::SliderFloat("XLightDir", &lightDir.x, -1.0f, 1.0f);
+        ImGui::SliderFloat("YLightDir", &lightDir.y, 0.0f, 1.0f);
+        ImGui::SliderFloat("LightIntensity", &lightIntensity, 0.0f, 7.0f);
         ImGui::End();
 
         ImGui::Render();
