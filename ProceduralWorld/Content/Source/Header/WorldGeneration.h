@@ -10,10 +10,11 @@
 class TerrainGeneration
 {
 public:
-	TerrainGeneration(HeightMap& ElevationMap);
+	TerrainGeneration(HeightMap& ElevationMap, HeightMap& BiomeMap);
 	void DrawTerrain();
 	void ReComputeMesh();
 	HeightMap ElevationMap;
+	HeightMap BiomeMap;
 
 	struct TerrainMat
 	{
@@ -23,7 +24,7 @@ public:
 		float Kd = 0.5f;
 		float Ks = 0.4f;
 		float Ka = 0.2f;
-		float shininess = 500.0f;
+		float shininess = 5000.0f;
 	};
 	TerrainMat terrainMaterial;
 private:

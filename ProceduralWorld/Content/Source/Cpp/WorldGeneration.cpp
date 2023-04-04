@@ -3,7 +3,8 @@
 #include <GLM/include/ext/quaternion_geometric.hpp>
 
 
-TerrainGeneration::TerrainGeneration(HeightMap& ElevationMap) : ElevationMap(std::move(ElevationMap))
+TerrainGeneration::TerrainGeneration(HeightMap& ElevationMap, HeightMap& BiomeMap) : ElevationMap(std::move(ElevationMap)), 
+BiomeMap(std::move(BiomeMap))
 {
     ComputeMesh();
     SetupBuffers();
@@ -15,22 +16,33 @@ void TerrainGeneration::ComputeMesh()
     {
         for (int j = 0; j < MAP_RESOLUTION; j++)
         {
+            float heightValue = ElevationMap.At(i, j);
+            float biomeValue = BiomeMap.At(j, i);
             const auto width = static_cast<float>(MAP_RESOLUTION);
             const auto height = static_cast<float>(MAP_RESOLUTION);
             const auto fi = static_cast<float>(i);
             const auto fj = static_cast<float>(j);
             const auto fMeshResolution = static_cast<float>(MAP_RESOLUTION);
             TerrainVertex vertex;
+            float heightOfVertex;
+            if(heightValue < 0.0f)
+            {
+                heightOfVertex = heightValue * (HEIGHT_SCALE / 2.0f);
+            }
+            else
+            {
+                heightOfVertex = heightValue * HEIGHT_SCALE;
+            }
             vertex.Position = glm::vec3
             (
                 -width / 2.0f + width * fi / fMeshResolution //X
-                , ElevationMap.At(i, j) * HEIGHT_SCALE //Y
+                , heightOfVertex //Y
                 , -height / 2.0f + height * fj / fMeshResolution //Z
             );
             vertex.UVCoords = glm::vec2
             (
-                fi / fMeshResolution, //U
-                fj / fMeshResolution  //V
+                fi / fMeshResolution , //U
+                fj / fMeshResolution //V
             );
             vertex.Normal = glm::vec3(0.0f);
             vertices.push_back(vertex);
@@ -130,7 +142,18 @@ void TerrainGeneration::ReComputeMesh()
     {
         for (int j = 0; j < MAP_RESOLUTION; j++)
         {
-            vertices[i * MAP_RESOLUTION + j].Position.y = ElevationMap.At(i, j) * HEIGHT_SCALE;
+            float heightValue = ElevationMap.At(i, j);
+            float biomeValue = BiomeMap.At(i, j);
+            float heightOfVertex;
+            if (heightValue < 0.0f)
+            {
+                heightOfVertex = heightValue * (HEIGHT_SCALE / 2.0f);
+            }
+            else
+            {
+                heightOfVertex = heightValue * HEIGHT_SCALE;
+            }
+            vertices[i * MAP_RESOLUTION + j].Position.y = heightOfVertex;
         }
     }
     ComputeNormals();

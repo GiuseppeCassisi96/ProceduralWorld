@@ -63,6 +63,9 @@
     <ClCompile Include="Content\API\IMGUI\imgui_widgets.cpp">
       <Filter>File di origine\ImGUI</Filter>
     </ClCompile>
+    <ClCompile Include="Content\API\STB_IMAGE\stb_image.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Content\Source\Header\Movement.h">
