@@ -13,7 +13,7 @@
 #include <GLM/include/gtc/matrix_transform.hpp>
 #include <GLM/include/gtc/matrix_inverse.hpp>
 #include <GLM/include/gtc/type_ptr.hpp>
-#include "Model.h"
+#include "Tree.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -39,7 +39,7 @@ HeightMap ElevationMap(MAP_RESOLUTION, MAP_RESOLUTION);
 HeightMap BiomeMap(MAP_RESOLUTION, MAP_RESOLUTION);
 unsigned int TerrainSubLocationIndex, ModelSubLocationIndex;
 //Light
-glm::vec3 lightDir = glm::vec3(1.0f, 0.3f, 0.0f);
+glm::vec3 lightDir = glm::vec3(-1.0f, 0.3f, 0.0f);
 float lightIntensity = 1.5f;
 //Model
 
@@ -51,7 +51,7 @@ int main()
     int oldOctaves = octaves;
     GLFWwindow* window = nullptr;
     window = Setup(window);
-    Model TestModel((modelsPath + "tree_obj.obj").c_str());
+    Tree TreeModel((modelsPath + "tree_obj.obj").c_str());
     //Creation of HeightMap
     Shader NoiseShader{ (shadersPath + "NoiseGeneration.comp").c_str() };
     NoiseShader.UseProgram();
@@ -89,23 +89,27 @@ int main()
 	glm::mat4 TerrainModel = glm::mat4(1.0f);
     glm::mat3 TerrainNormalMatrix = glm::mat3(1.0f);
 
-    glm::mat4 TestModelModel = glm::mat4(1.0f);
-    glm::mat3 TestNormalMatrix = glm::mat3(1.0f);
+    glm::mat4 TreeModelModel = glm::mat4(1.0f);
+    glm::mat3 TreeNormalMatrix = glm::mat3(1.0f);
 
     TerrainModel = glm::translate(TerrainModel, glm::vec3(0.0f));
     TerrainNormalMatrix = glm::inverseTranspose(glm::mat3(TerrainModel));
 
-    TestModelModel = glm::translate(TestModelModel, glm::vec3(-300.0f, 0.0f, 0.0f));
-    TestNormalMatrix = glm::inverseTranspose(glm::mat3(TestModelModel));
+    TreeModelModel = glm::translate(TreeModelModel, glm::vec3(-300.0f, 0.0f, 0.0f));
+    TreeNormalMatrix = glm::inverseTranspose(glm::mat3(TreeModelModel));
+
+    TerrainSubLocationIndex = glGetSubroutineIndex(terrainShader.GetProgram(), GL_FRAGMENT_SHADER,
+        "illuminationForTerrain");
+    ModelSubLocationIndex = glGetSubroutineIndex(terrainShader.GetProgram(), GL_FRAGMENT_SHADER,
+        "illuminationForModels");
+
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &TerrainSubLocationIndex);
 
     terrainShader.UseProgram();
     terrainShader.SetUniformMatrix4("model", TerrainModel);
     terrainShader.SetUniformMatrix4("view", WorldCamera);
     terrainShader.SetUniformMatrix4("proj", WorldProjection);
-    
     terrainShader.SetUniformVec3("viewPos", playerMovement.position);
-    terrainShader.SetUniformVec3("ambientColor", terrain.terrainMaterial.ambientColor);
-    terrainShader.SetUniformVec3("diffuseColor", terrain.terrainMaterial.diffusiveColor);
     terrainShader.SetUniformVec3("specularColor", terrain.terrainMaterial.specularColor);
     terrainShader.SetUniformVec3("lightDir", lightDir);
     terrainShader.SetUniformFloat("Ka", terrain.terrainMaterial.Ka);
@@ -115,15 +119,20 @@ int main()
     terrainShader.SetUniformFloat("lightIntensity", lightIntensity);
     terrainShader.SetUniformInt("ElevationMap", 0);
     terrainShader.SetUniformInt("BiomeMap", 1);
-    terrainShader.SetUniformInt("Grass", 2);
-    terrainShader.SetUniformInt("Desert", 3);
-    terrainShader.SetUniformInt("Snow", 4);
-    terrainShader.SetUniformInt("Rock", 5);
+    terrainShader.SetUniformInt("Grass", terrain.terrainMaterial.Grass);
+    terrainShader.SetUniformInt("Desert", terrain.terrainMaterial.Sand);
+    terrainShader.SetUniformInt("Snow", terrain.terrainMaterial.Snow);
+    terrainShader.SetUniformInt("Rock", terrain.terrainMaterial.Rock);
 
-    TerrainSubLocationIndex = glGetSubroutineIndex(terrainShader.GetProgram(), GL_FRAGMENT_SHADER, 
-        "illuminationForTerrain");
-    ModelSubLocationIndex = glGetSubroutineIndex(terrainShader.GetProgram(), GL_FRAGMENT_SHADER, 
-        "illuminationForModels");
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &ModelSubLocationIndex);
+    terrainShader.SetUniformMatrix4("model", TreeModelModel);
+    terrainShader.SetUniformVec3("specularColor", TreeModel.treeMaterial.specularColor);
+    terrainShader.SetUniformVec3("albedo", TreeModel.treeMaterial.albedo);
+    terrainShader.SetUniformFloat("Ka", TreeModel.treeMaterial.Ka);
+    terrainShader.SetUniformFloat("Ks", TreeModel.treeMaterial.Ks);
+    terrainShader.SetUniformFloat("Kd", TreeModel.treeMaterial.Kd);
+    terrainShader.SetUniformFloat("shininess", TreeModel.treeMaterial.shininess);
+    terrainShader.SetUniformFloat("lightIntensity", lightIntensity);
     
     // render loop
     while (!glfwWindowShouldClose(window))
@@ -160,9 +169,9 @@ int main()
         terrain.DrawTerrain();
 
         glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &ModelSubLocationIndex);
-        terrainShader.SetUniformMatrix3("normalMatrix", TestNormalMatrix);
-        terrainShader.SetUniformMatrix4("model", TestModelModel);
-        TestModel.DrawModel();
+        terrainShader.SetUniformMatrix3("normalMatrix", TreeNormalMatrix);
+        terrainShader.SetUniformMatrix4("model", TreeModelModel);
+        TreeModel.DrawTree();
 
         //Setting of whole application UI
         ImGui::Begin("ProceduralWorld control panel ");

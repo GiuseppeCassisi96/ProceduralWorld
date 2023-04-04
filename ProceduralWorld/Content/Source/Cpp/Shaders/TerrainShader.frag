@@ -4,8 +4,7 @@
 subroutine vec3 light();
 
 // ambient, diffusive and specular components (passed from the application)
-uniform vec3 ambientColor;
-uniform vec3 diffuseColor;
+uniform vec3 albedo;
 uniform vec3 specularColor;
 // weight of the components
 uniform float Ka;
@@ -66,7 +65,6 @@ vec3 illuminationForTerrain()
             initialColor = texture(Rock, vUVCoord * 100).rgb;
         }
     }
-    
 
 //LIGHT COMPUTATION 
 	vec3 N = normalize(vNormal);
@@ -106,7 +104,7 @@ vec3 illuminationForModels()
 	vec3 N = normalize(vNormal);
 	vec3 L = normalize(vlightDir);
 	// ambient component can be calculated at the beginning
-    vec3 color = Ka*ambientColor;
+    vec3 color = Ka*albedo;
     // Lambert coefficient
     float lambertian = max(dot(L,N), 0.0);
     // if the lambert coefficient is positive, then I can calculate the specular component
@@ -125,7 +123,7 @@ vec3 illuminationForModels()
 
         // We add diffusive and specular components to the final color
         // N.B. ): in this implementation, the sum of the components can be different than 1
-        color += lightIntensity * vec3( Kd * lambertian * diffuseColor +
+        color += lightIntensity * vec3( Kd * lambertian * albedo +
                         Ks * specular * specularColor);
     }
     return color;

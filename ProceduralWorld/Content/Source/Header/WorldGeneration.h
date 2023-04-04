@@ -18,12 +18,14 @@ public:
 
 	struct TerrainMat
 	{
-		glm::vec3 diffusiveColor = glm::vec3(1.0f, 0.0f, 0.0f);
 		glm::vec3 specularColor = glm::vec3(1.0f, 1.0f, 1.0f);
-		glm::vec3 ambientColor = glm::vec3(1.0f, 0.0f, 0.0f);
+		unsigned int Grass = 2;
+		unsigned int Sand = 3;
+		unsigned int Snow = 4;
+		unsigned int Rock = 5;
 		float Kd = 0.5f;
 		float Ks = 0.4f;
-		float Ka = 0.2f;
+		float Ka = 0.1f;
 		float shininess = 5000.0f;
 	};
 	TerrainMat terrainMaterial;
