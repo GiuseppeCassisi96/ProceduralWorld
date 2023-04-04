@@ -142,8 +142,8 @@ int main()
         //Setting of whole application UI
         ImGui::Begin("ProceduralWorld control panel ");
         ImGui::Text("Here you can modify all terrain generation parameters");
-        ImGui::SliderFloat("Frequency", &frequency, 0.1f, 3.0f);
-        ImGui::SliderFloat("Amplitude", &amplitude, 0.1f, 2.0f);
+        ImGui::SliderFloat("Frequency", &frequency, 0.1f, 3.5f);
+        ImGui::SliderFloat("Amplitude", &amplitude, 0.1f, 3.0f);
         ImGui::SliderInt("Octaves", &octaves, 2, 10);
         ImGui::SliderFloat("XLightDir", &lightDir.x, -1.0f, 1.0f);
         ImGui::SliderFloat("YLightDir", &lightDir.y, 0.0f, 1.0f);
