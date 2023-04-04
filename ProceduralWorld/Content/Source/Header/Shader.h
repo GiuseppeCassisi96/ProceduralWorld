@@ -57,6 +57,10 @@ public:
 	 * \param value the value that I want set to the uniform var
 	 */
 	void SetUniformVec3(const char* uniformParamName, const glm::vec3& value) const;
+	inline unsigned int GetProgram()
+	{
+		return program;
+	}
 private:
 	/**
 	 * \brief Compile the shader code. If the compilation fail print a message

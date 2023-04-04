@@ -13,6 +13,7 @@
 #include <GLM/include/gtc/matrix_transform.hpp>
 #include <GLM/include/gtc/matrix_inverse.hpp>
 #include <GLM/include/gtc/type_ptr.hpp>
+#include "Model.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -30,23 +31,27 @@ glm::mat4 WorldProjection = glm::perspective(45.0f, static_cast<float>(WIDTH) / 
 Movement playerMovement{ glm::vec3(0.0f, 0.0f, 7.0f), WorldCamera };
 std::string shadersPath = "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/ProceduralWorld/Content/Source/Cpp/Shaders/";
 std::string texturesPath = "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/ProceduralWorld/Content/Source/Textures/";
+std::string modelsPath = "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/ProceduralWorld/Content/Source/Models/";
 float amplitude = 2.0f;
 float frequency = 3.0f;
 int octaves = 10;
 HeightMap ElevationMap(MAP_RESOLUTION, MAP_RESOLUTION);
 HeightMap BiomeMap(MAP_RESOLUTION, MAP_RESOLUTION);
+unsigned int TerrainSubLocationIndex, ModelSubLocationIndex;
 //Light
 glm::vec3 lightDir = glm::vec3(1.0f, 0.3f, 0.0f);
 float lightIntensity = 1.5f;
+//Model
 
 int main()
 {
+    
     float oldFrequency = frequency;
     float oldAmplitude = amplitude;
     int oldOctaves = octaves;
     GLFWwindow* window = nullptr;
     window = Setup(window);
-
+    Model TestModel((modelsPath + "tree_obj.obj").c_str());
     //Creation of HeightMap
     Shader NoiseShader{ (shadersPath + "NoiseGeneration.comp").c_str() };
     NoiseShader.UseProgram();
@@ -84,13 +89,20 @@ int main()
 	glm::mat4 TerrainModel = glm::mat4(1.0f);
     glm::mat3 TerrainNormalMatrix = glm::mat3(1.0f);
 
+    glm::mat4 TestModelModel = glm::mat4(1.0f);
+    glm::mat3 TestNormalMatrix = glm::mat3(1.0f);
+
     TerrainModel = glm::translate(TerrainModel, glm::vec3(0.0f));
     TerrainNormalMatrix = glm::inverseTranspose(glm::mat3(TerrainModel));
+
+    TestModelModel = glm::translate(TestModelModel, glm::vec3(-300.0f, 0.0f, 0.0f));
+    TestNormalMatrix = glm::inverseTranspose(glm::mat3(TestModelModel));
+
     terrainShader.UseProgram();
     terrainShader.SetUniformMatrix4("model", TerrainModel);
     terrainShader.SetUniformMatrix4("view", WorldCamera);
     terrainShader.SetUniformMatrix4("proj", WorldProjection);
-    terrainShader.SetUniformMatrix3("normalMatrix", TerrainNormalMatrix);
+    
     terrainShader.SetUniformVec3("viewPos", playerMovement.position);
     terrainShader.SetUniformVec3("ambientColor", terrain.terrainMaterial.ambientColor);
     terrainShader.SetUniformVec3("diffuseColor", terrain.terrainMaterial.diffusiveColor);
@@ -108,6 +120,10 @@ int main()
     terrainShader.SetUniformInt("Snow", 4);
     terrainShader.SetUniformInt("Rock", 5);
 
+    TerrainSubLocationIndex = glGetSubroutineIndex(terrainShader.GetProgram(), GL_FRAGMENT_SHADER, 
+        "illuminationForTerrain");
+    ModelSubLocationIndex = glGetSubroutineIndex(terrainShader.GetProgram(), GL_FRAGMENT_SHADER, 
+        "illuminationForModels");
     
     // render loop
     while (!glfwWindowShouldClose(window))
@@ -137,7 +153,16 @@ int main()
         {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
+
+        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &TerrainSubLocationIndex);
+        terrainShader.SetUniformMatrix3("normalMatrix", TerrainNormalMatrix);
+        terrainShader.SetUniformMatrix4("model", TerrainModel);
         terrain.DrawTerrain();
+
+        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &ModelSubLocationIndex);
+        terrainShader.SetUniformMatrix3("normalMatrix", TestNormalMatrix);
+        terrainShader.SetUniformMatrix4("model", TestModelModel);
+        TestModel.DrawModel();
 
         //Setting of whole application UI
         ImGui::Begin("ProceduralWorld control panel ");

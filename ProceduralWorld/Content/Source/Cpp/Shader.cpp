@@ -130,7 +130,7 @@ void Shader::SetUniformVec3(const char* uniformParamName, const glm::vec3& value
 }
 
 void Shader::CompileShader(const char* shaderName, unsigned int& shaderObj,
-	unsigned int shaderType)
+                           unsigned int shaderType)
 {
 	//Creates shader reference objects
 	shaderObj = glCreateShader(shaderType);

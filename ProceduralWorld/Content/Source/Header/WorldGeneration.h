@@ -34,8 +34,8 @@ private:
 	struct TerrainVertex
 	{
 		glm::vec3 Position;
-		glm::vec3 Normal;
 		glm::vec2 UVCoords;
+		glm::vec3 Normal;
 	};
 	std::vector<TerrainVertex> vertices;
 	std::vector<int> indices;
