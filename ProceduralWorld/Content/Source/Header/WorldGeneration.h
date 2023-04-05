@@ -25,10 +25,10 @@ public:
 	struct TerrainMat
 	{
 		glm::vec3 specularColor = glm::vec3(1.0f, 1.0f, 1.0f);
-		unsigned int Grass = 2;
-		unsigned int Sand = 3;
-		unsigned int Snow = 4;
-		unsigned int Rock = 5;
+		unsigned int Grass = 3;
+		unsigned int Sand = 4;
+		unsigned int Snow = 5;
+		unsigned int Rock = 6;
 		float Kd = 0.5f;
 		float Ks = 0.4f;
 		float Ka = 0.1f;

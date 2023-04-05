@@ -7,7 +7,7 @@ class Tree : public Model
 public:
 	Tree(const std::string& path);
 	void DrawTree();
-	void SetupTreePositions(TerrainGeneration& terrainData, int numberOfTree);
+	void SetupTreePositions(TerrainGeneration& terrainData, int numberOfTree, HeightMap& TreeMap, float thresholdTreeValue);
 	struct TreeMat
 	{
 		glm::vec3 specularColor = glm::vec3(1.0f, 1.0f, 1.0f);

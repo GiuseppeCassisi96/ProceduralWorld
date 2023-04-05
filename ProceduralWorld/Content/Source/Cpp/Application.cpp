@@ -19,7 +19,7 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void recompute_heightMap(Shader& NoiseShader, Texture& NoiseText, Texture& BiomeNoiseText, TerrainGeneration& terrain);
+void recompute_heightMap(Shader& NoiseShader, Texture& NoiseText, Texture& BiomeNoiseText, Texture& TreeNoiseText, TerrainGeneration& terrain);
 GLFWwindow* Setup(GLFWwindow* window);
 
 //Global vars
@@ -74,21 +74,26 @@ int main()
     BiomeNoiseText.GetValuesFromTexture(BiomeMap.GetData());
     BiomeNoiseText.BindTexture(GL_TEXTURE1);
 
-    Texture GrassTextures((texturesPath + "Grass.jpg").c_str(), GL_TEXTURE2);
-    Texture DesertTextures((texturesPath + "Sand.jpg").c_str(), GL_TEXTURE3);
-    Texture SnowTextures((texturesPath + "Snow.jpg").c_str(), GL_TEXTURE4);
-    Texture RockTextures((texturesPath + "Rock.jpg").c_str(), GL_TEXTURE5);
+    Texture TreeNoiseText{ GL_TEXTURE2, MAP_RESOLUTION, MAP_RESOLUTION };
+    TreeNoiseText.BindTexture(GL_TEXTURE2);
+    NoiseShader.DispatchCompute();
+    TreeNoiseText.GetValuesFromTexture(TreeMap.GetData());
+    TreeNoiseText.BindTexture(GL_TEXTURE2);
+
+    Texture GrassTextures((texturesPath + "Grass.jpg").c_str(), GL_TEXTURE3);
+    Texture DesertTextures((texturesPath + "Sand.jpg").c_str(), GL_TEXTURE4);
+    Texture SnowTextures((texturesPath + "Snow.jpg").c_str(), GL_TEXTURE5);
+    Texture RockTextures((texturesPath + "Rock.jpg").c_str(), GL_TEXTURE6);
     
-    GrassTextures.BindTexture(GL_TEXTURE2);
-    DesertTextures.BindTexture(GL_TEXTURE3);
-    SnowTextures.BindTexture(GL_TEXTURE4);
-    RockTextures.BindTexture(GL_TEXTURE5);
+    GrassTextures.BindTexture(GL_TEXTURE3);
+    DesertTextures.BindTexture(GL_TEXTURE4);
+    SnowTextures.BindTexture(GL_TEXTURE5);
+    RockTextures.BindTexture(GL_TEXTURE6);
 
     Shader terrainShader{ (shadersPath + "TerrainShader.vert").c_str(),
                       (shadersPath + "TerrainShader.frag").c_str() };
     TerrainGeneration terrain (ElevationMap, BiomeMap);
-    
-    /*TreeModel.SetupTreePositions(terrain,10);*/
+
 	glm::mat4 TerrainModel = glm::mat4(1.0f);
     glm::mat3 TerrainNormalMatrix = glm::mat3(1.0f);
 
@@ -128,7 +133,7 @@ int main()
 
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &ModelSubLocationIndex);
     Tree TreeModel((modelsPath + "tree_obj.obj").c_str());
-    TreeModel.SetupTreePositions(terrain, TREE_ITERATION_NUMBER);
+    TreeModel.SetupTreePositions(terrain, TREE_ITERATION_NUMBER, TreeMap, thresholdTreeValue);
     terrainShader.SetUniformMatrix4("model", TreeModelModel);
     terrainShader.SetUniformVec3("specularColor", TreeModel.treeMaterial.specularColor);
     terrainShader.SetUniformVec3("albedo", TreeModel.treeMaterial.albedo);
@@ -172,7 +177,7 @@ int main()
         terrainShader.SetUniformMatrix4("model", TerrainModel);
         terrain.DrawTerrain();
         glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &ModelSubLocationIndex);
-        for(int i = 0; i < TREE_ITERATION_NUMBER; i++)
+        for(int i = 0; i < TreeModel.treePositions.size(); i++)
         {
             TreeModelModel = glm::mat4(1.0f);
             TreeModelModel = glm::translate(TreeModelModel, TreeModel.treePositions[i]);
@@ -193,26 +198,33 @@ int main()
         ImGui::SliderFloat("XLightDir", &lightDir.x, -1.0f, 1.0f);
         ImGui::SliderFloat("YLightDir", &lightDir.y, 0.0f, 1.0f);
         ImGui::SliderFloat("LightIntensity", &lightIntensity, 0.0f, 7.0f);
-        ImGui::SliderFloat("Threshold tree value", &thresholdTreeValue, 0.0f, 1.0f);
+        ImGui::SliderFloat("Threshold tree value", &thresholdTreeValue, -3.0f, 3.0f);
         ImGui::End();
 
         //Rendering of application UI
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        if(oldFrequency != frequency || oldAmplitude != amplitude || oldOctaves != octaves || oldThresholdTreeValue != thresholdTreeValue)
+        if(oldThresholdTreeValue != thresholdTreeValue)
+        {
+            oldThresholdTreeValue = thresholdTreeValue;
+            TreeModel.treePositions.clear();
+            TreeModel.SetupTreePositions(terrain, TREE_ITERATION_NUMBER, TreeMap, thresholdTreeValue);
+        }
+
+        if(oldFrequency != frequency || oldAmplitude != amplitude || oldOctaves != octaves)
         {
             //Recompute Terrain
-            recompute_heightMap(NoiseShader, NoiseText, BiomeNoiseText,terrain);
+            recompute_heightMap(NoiseShader, NoiseText, BiomeNoiseText, TreeNoiseText,terrain);
             oldFrequency = frequency;
             oldAmplitude = amplitude;
             oldOctaves = octaves;
             terrain.ReComputeMesh();
 
+
             //Recompute Tree positions
-            oldThresholdTreeValue = thresholdTreeValue;
             TreeModel.treePositions.clear();
-            TreeModel.SetupTreePositions(terrain, TREE_ITERATION_NUMBER);
+            TreeModel.SetupTreePositions(terrain, TREE_ITERATION_NUMBER, TreeMap,thresholdTreeValue);
         }
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -306,7 +318,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     if(!isMouseVisible)
 		playerMovement.Rotate(xpos, ypos);
 }
-void recompute_heightMap(Shader& NoiseShader, Texture& NoiseText, Texture& BiomeNoiseText, TerrainGeneration& terrain)
+void recompute_heightMap(Shader& NoiseShader, Texture& NoiseText, Texture& BiomeNoiseText, Texture& TreeNoiseText, TerrainGeneration& terrain)
 {
     NoiseShader.UseProgram();
     NoiseShader.SetUniformFloat("amplitude", amplitude);
@@ -317,9 +329,13 @@ void recompute_heightMap(Shader& NoiseShader, Texture& NoiseText, Texture& Biome
     NoiseShader.DispatchCompute();
     BiomeNoiseText.BindTexture(GL_TEXTURE1);
     NoiseShader.DispatchCompute();
+    TreeNoiseText.BindTexture(GL_TEXTURE2);
+    NoiseShader.DispatchCompute();
     
     NoiseText.GetValuesFromTexture(terrain.ElevationMap.GetData());
     NoiseText.BindTexture(GL_TEXTURE0);
     BiomeNoiseText.GetValuesFromTexture(terrain.BiomeMap.GetData());
     BiomeNoiseText.BindTexture(GL_TEXTURE1);
+    TreeNoiseText.GetValuesFromTexture(TreeMap.GetData());
+    TreeNoiseText.BindTexture(GL_TEXTURE2);
 }
