@@ -6,13 +6,19 @@
 #include "Constants.h"
 #include "Include/glad.h"
 
-
+struct TerrainVertex
+{
+	glm::vec3 Position;
+	glm::vec2 UVCoords;
+	glm::vec3 Normal;
+};
 class TerrainGeneration
 {
 public:
 	TerrainGeneration(HeightMap& ElevationMap, HeightMap& BiomeMap);
 	void DrawTerrain();
 	void ReComputeMesh();
+
 	HeightMap ElevationMap;
 	HeightMap BiomeMap;
 
@@ -29,17 +35,11 @@ public:
 		float shininess = 5000.0f;
 	};
 	TerrainMat terrainMaterial;
+	std::vector<TerrainVertex> vertices;
 private:
 	void ComputeMesh();
 	void SetupBuffers();
 	void ComputeNormals();
-	struct TerrainVertex
-	{
-		glm::vec3 Position;
-		glm::vec2 UVCoords;
-		glm::vec3 Normal;
-	};
-	std::vector<TerrainVertex> vertices;
 	std::vector<int> indices;
 	unsigned int VBO, VAO, EBO;
 };

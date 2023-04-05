@@ -157,6 +157,7 @@ void TerrainGeneration::ReComputeMesh()
         }
     }
     ComputeNormals();
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(TerrainVertex), vertices.data(), GL_DYNAMIC_DRAW);
 }
 

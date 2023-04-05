@@ -37,21 +37,23 @@ float frequency = 3.0f;
 int octaves = 10;
 HeightMap ElevationMap(MAP_RESOLUTION, MAP_RESOLUTION);
 HeightMap BiomeMap(MAP_RESOLUTION, MAP_RESOLUTION);
+HeightMap TreeMap(MAP_RESOLUTION, MAP_RESOLUTION);
 unsigned int TerrainSubLocationIndex, ModelSubLocationIndex;
 //Light
-glm::vec3 lightDir = glm::vec3(-1.0f, 0.3f, 0.0f);
+glm::vec3 lightDir = glm::vec3(0.0f, 0.3f, 0.0f);
 float lightIntensity = 1.5f;
-//Model
-
+//Tree
+float thresholdTreeValue = 0.5f;
 int main()
 {
     
     float oldFrequency = frequency;
     float oldAmplitude = amplitude;
     int oldOctaves = octaves;
+    float oldThresholdTreeValue = thresholdTreeValue;
     GLFWwindow* window = nullptr;
     window = Setup(window);
-    Tree TreeModel((modelsPath + "tree_obj.obj").c_str());
+    
     //Creation of HeightMap
     Shader NoiseShader{ (shadersPath + "NoiseGeneration.comp").c_str() };
     NoiseShader.UseProgram();
@@ -84,8 +86,9 @@ int main()
 
     Shader terrainShader{ (shadersPath + "TerrainShader.vert").c_str(),
                       (shadersPath + "TerrainShader.frag").c_str() };
-
     TerrainGeneration terrain (ElevationMap, BiomeMap);
+    
+    /*TreeModel.SetupTreePositions(terrain,10);*/
 	glm::mat4 TerrainModel = glm::mat4(1.0f);
     glm::mat3 TerrainNormalMatrix = glm::mat3(1.0f);
 
@@ -95,8 +98,7 @@ int main()
     TerrainModel = glm::translate(TerrainModel, glm::vec3(0.0f));
     TerrainNormalMatrix = glm::inverseTranspose(glm::mat3(TerrainModel));
 
-    TreeModelModel = glm::translate(TreeModelModel, glm::vec3(-300.0f, 0.0f, 0.0f));
-    TreeNormalMatrix = glm::inverseTranspose(glm::mat3(TreeModelModel));
+
 
     TerrainSubLocationIndex = glGetSubroutineIndex(terrainShader.GetProgram(), GL_FRAGMENT_SHADER,
         "illuminationForTerrain");
@@ -125,6 +127,8 @@ int main()
     terrainShader.SetUniformInt("Rock", terrain.terrainMaterial.Rock);
 
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &ModelSubLocationIndex);
+    Tree TreeModel((modelsPath + "tree_obj.obj").c_str());
+    TreeModel.SetupTreePositions(terrain, TREE_ITERATION_NUMBER);
     terrainShader.SetUniformMatrix4("model", TreeModelModel);
     terrainShader.SetUniformVec3("specularColor", TreeModel.treeMaterial.specularColor);
     terrainShader.SetUniformVec3("albedo", TreeModel.treeMaterial.albedo);
@@ -167,11 +171,18 @@ int main()
         terrainShader.SetUniformMatrix3("normalMatrix", TerrainNormalMatrix);
         terrainShader.SetUniformMatrix4("model", TerrainModel);
         terrain.DrawTerrain();
-
         glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &ModelSubLocationIndex);
-        terrainShader.SetUniformMatrix3("normalMatrix", TreeNormalMatrix);
-        terrainShader.SetUniformMatrix4("model", TreeModelModel);
-        TreeModel.DrawTree();
+        for(int i = 0; i < TREE_ITERATION_NUMBER; i++)
+        {
+            TreeModelModel = glm::mat4(1.0f);
+            TreeModelModel = glm::translate(TreeModelModel, TreeModel.treePositions[i]);
+            TreeModelModel = glm::scale(TreeModelModel, glm::vec3(0.03f, 0.03f, 0.03f));
+            TreeNormalMatrix = glm::mat3(glm::inverseTranspose(TreeModelModel));
+            terrainShader.SetUniformMatrix3("normalMatrix", TreeNormalMatrix);
+            terrainShader.SetUniformMatrix4("model", TreeModelModel);
+            TreeModel.DrawTree();
+        }
+        
 
         //Setting of whole application UI
         ImGui::Begin("ProceduralWorld control panel ");
@@ -182,19 +193,26 @@ int main()
         ImGui::SliderFloat("XLightDir", &lightDir.x, -1.0f, 1.0f);
         ImGui::SliderFloat("YLightDir", &lightDir.y, 0.0f, 1.0f);
         ImGui::SliderFloat("LightIntensity", &lightIntensity, 0.0f, 7.0f);
+        ImGui::SliderFloat("Threshold tree value", &thresholdTreeValue, 0.0f, 1.0f);
         ImGui::End();
 
         //Rendering of application UI
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        if(oldFrequency != frequency || oldAmplitude != amplitude || oldOctaves != octaves)
+        if(oldFrequency != frequency || oldAmplitude != amplitude || oldOctaves != octaves || oldThresholdTreeValue != thresholdTreeValue)
         {
+            //Recompute Terrain
             recompute_heightMap(NoiseShader, NoiseText, BiomeNoiseText,terrain);
             oldFrequency = frequency;
             oldAmplitude = amplitude;
             oldOctaves = octaves;
             terrain.ReComputeMesh();
+
+            //Recompute Tree positions
+            oldThresholdTreeValue = thresholdTreeValue;
+            TreeModel.treePositions.clear();
+            TreeModel.SetupTreePositions(terrain, TREE_ITERATION_NUMBER);
         }
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)

@@ -1,11 +1,13 @@
 #pragma once
 #include "Model.h"
+#include "WorldGeneration.h"
 
 class Tree : public Model
 {
 public:
 	Tree(const std::string& path);
-
+	void DrawTree();
+	void SetupTreePositions(TerrainGeneration& terrainData, int numberOfTree);
 	struct TreeMat
 	{
 		glm::vec3 specularColor = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -15,9 +17,10 @@ public:
 		float Ka = 0.1f;
 		float shininess = 5000.0f;
 	};
-	void DrawTree();
 	TreeMat treeMaterial;
+	std::vector<glm::vec3> treePositions;
 	
+
 };
 
 
