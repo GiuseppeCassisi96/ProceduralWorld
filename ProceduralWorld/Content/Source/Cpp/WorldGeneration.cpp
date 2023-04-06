@@ -3,8 +3,7 @@
 #include <GLM/include/ext/quaternion_geometric.hpp>
 
 
-TerrainGeneration::TerrainGeneration(HeightMap& ElevationMap, HeightMap& BiomeMap) : ElevationMap(std::move(ElevationMap)), 
-BiomeMap(std::move(BiomeMap))
+TerrainGeneration::TerrainGeneration(HeightMap& ElevationMap) : ElevationMap(std::move(ElevationMap))
 {
     ComputeMesh();
     SetupBuffers();
@@ -17,7 +16,6 @@ void TerrainGeneration::ComputeMesh()
         for (int j = 0; j < MAP_RESOLUTION; j++)
         {
             float heightValue = ElevationMap.At(i, j);
-            float biomeValue = BiomeMap.At(j, i);
             const auto width = static_cast<float>(MAP_RESOLUTION);
             const auto height = static_cast<float>(MAP_RESOLUTION);
             const auto fi = static_cast<float>(i);
@@ -90,10 +88,10 @@ void TerrainGeneration::SetupBuffers()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(TerrainVertex), (void*)0);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(TerrainVertex), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TerrainVertex), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(TerrainVertex), (void*)(6 * sizeof(float)));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(TerrainVertex), (void*)(5 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
     glBindVertexArray(0);
@@ -143,7 +141,6 @@ void TerrainGeneration::ReComputeMesh()
         for (int j = 0; j < MAP_RESOLUTION; j++)
         {
             float heightValue = ElevationMap.At(i, j);
-            float biomeValue = BiomeMap.At(i, j);
             float heightOfVertex;
             if (heightValue < 0.0f)
             {
@@ -157,6 +154,7 @@ void TerrainGeneration::ReComputeMesh()
         }
     }
     ComputeNormals();
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(TerrainVertex), vertices.data(), GL_DYNAMIC_DRAW);
 }
 

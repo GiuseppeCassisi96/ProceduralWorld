@@ -13,12 +13,13 @@
 #include <GLM/include/gtc/matrix_transform.hpp>
 #include <GLM/include/gtc/matrix_inverse.hpp>
 #include <GLM/include/gtc/type_ptr.hpp>
+#include "Tree.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void recompute_heightMap(Shader& NoiseShader, Texture& NoiseText, Texture& BiomeNoiseText, TerrainGeneration& terrain);
+void recompute_heightMap(Shader& NoiseShader, Shader& terrainShader,Texture& NoiseText, Texture& BiomeNoiseText, Texture& TreeNoiseText, TerrainGeneration& terrain);
 GLFWwindow* Setup(GLFWwindow* window);
 
 //Global vars
@@ -30,23 +31,29 @@ glm::mat4 WorldProjection = glm::perspective(45.0f, static_cast<float>(WIDTH) / 
 Movement playerMovement{ glm::vec3(0.0f, 0.0f, 7.0f), WorldCamera };
 std::string shadersPath = "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/ProceduralWorld/Content/Source/Cpp/Shaders/";
 std::string texturesPath = "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/ProceduralWorld/Content/Source/Textures/";
-float amplitude = 2.0f;
-float frequency = 3.0f;
+std::string modelsPath = "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/ProceduralWorld/Content/Source/Models/";
+float amplitude = 3.0f;
+float frequency = 2.0f;
 int octaves = 10;
 HeightMap ElevationMap(MAP_RESOLUTION, MAP_RESOLUTION);
 HeightMap BiomeMap(MAP_RESOLUTION, MAP_RESOLUTION);
+HeightMap TreeMap(MAP_RESOLUTION, MAP_RESOLUTION);
+unsigned int TerrainSubLocationIndex, ModelSubLocationIndex;
 //Light
-glm::vec3 lightDir = glm::vec3(1.0f, 0.3f, 0.0f);
+glm::vec3 lightDir = glm::vec3(0.0f, 0.3f, 0.0f);
 float lightIntensity = 1.5f;
-
+//Tree
+float thresholdTreeValue = 0.5f;
 int main()
 {
+    
     float oldFrequency = frequency;
     float oldAmplitude = amplitude;
     int oldOctaves = octaves;
+    float oldThresholdTreeValue = thresholdTreeValue;
     GLFWwindow* window = nullptr;
     window = Setup(window);
-
+    
     //Creation of HeightMap
     Shader NoiseShader{ (shadersPath + "NoiseGeneration.comp").c_str() };
     NoiseShader.UseProgram();
@@ -59,41 +66,54 @@ int main()
     NoiseText.BindTexture(GL_TEXTURE0);
     NoiseShader.DispatchCompute();
     NoiseText.GetValuesFromTexture(ElevationMap.GetData());
-    NoiseText.BindTexture(GL_TEXTURE0);
 
     Texture BiomeNoiseText{ GL_TEXTURE1, MAP_RESOLUTION, MAP_RESOLUTION };
     BiomeNoiseText.BindTexture(GL_TEXTURE1);
     NoiseShader.DispatchCompute();
     BiomeNoiseText.GetValuesFromTexture(BiomeMap.GetData());
-    BiomeNoiseText.BindTexture(GL_TEXTURE1);
 
-    Texture GrassTextures((texturesPath + "Grass.jpg").c_str(), GL_TEXTURE2);
-    Texture DesertTextures((texturesPath + "Sand.jpg").c_str(), GL_TEXTURE3);
-    Texture SnowTextures((texturesPath + "Snow.jpg").c_str(), GL_TEXTURE4);
-    Texture RockTextures((texturesPath + "Rock.jpg").c_str(), GL_TEXTURE5);
+    Texture TreeNoiseText{ GL_TEXTURE2, MAP_RESOLUTION, MAP_RESOLUTION };
+    TreeNoiseText.BindTexture(GL_TEXTURE2);
+    NoiseShader.DispatchCompute();
+    TreeNoiseText.GetValuesFromTexture(TreeMap.GetData());
+
+    Texture GrassTextures((texturesPath + "Grass.jpg").c_str(), GL_TEXTURE3);
+    Texture DesertTextures((texturesPath + "Sand.jpg").c_str(), GL_TEXTURE4);
+    Texture SnowTextures((texturesPath + "Snow.jpg").c_str(), GL_TEXTURE5);
+    Texture RockTextures((texturesPath + "Rock.jpg").c_str(), GL_TEXTURE6);
     
-    GrassTextures.BindTexture(GL_TEXTURE2);
-    DesertTextures.BindTexture(GL_TEXTURE3);
-    SnowTextures.BindTexture(GL_TEXTURE4);
-    RockTextures.BindTexture(GL_TEXTURE5);
+    GrassTextures.BindTexture(GL_TEXTURE3);
+    DesertTextures.BindTexture(GL_TEXTURE4);
+    SnowTextures.BindTexture(GL_TEXTURE5);
+    RockTextures.BindTexture(GL_TEXTURE6);
 
     Shader terrainShader{ (shadersPath + "TerrainShader.vert").c_str(),
                       (shadersPath + "TerrainShader.frag").c_str() };
+    TerrainGeneration terrain (ElevationMap);
 
-    TerrainGeneration terrain (ElevationMap, BiomeMap);
 	glm::mat4 TerrainModel = glm::mat4(1.0f);
     glm::mat3 TerrainNormalMatrix = glm::mat3(1.0f);
 
+    glm::mat4 TreeModelModel = glm::mat4(1.0f);
+    glm::mat3 TreeNormalMatrix = glm::mat3(1.0f);
+
     TerrainModel = glm::translate(TerrainModel, glm::vec3(0.0f));
     TerrainNormalMatrix = glm::inverseTranspose(glm::mat3(TerrainModel));
+
+
+
+    TerrainSubLocationIndex = glGetSubroutineIndex(terrainShader.GetProgram(), GL_FRAGMENT_SHADER,
+        "illuminationForTerrain");
+    ModelSubLocationIndex = glGetSubroutineIndex(terrainShader.GetProgram(), GL_FRAGMENT_SHADER,
+        "illuminationForModels");
+
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &TerrainSubLocationIndex);
+
     terrainShader.UseProgram();
     terrainShader.SetUniformMatrix4("model", TerrainModel);
     terrainShader.SetUniformMatrix4("view", WorldCamera);
     terrainShader.SetUniformMatrix4("proj", WorldProjection);
-    terrainShader.SetUniformMatrix3("normalMatrix", TerrainNormalMatrix);
     terrainShader.SetUniformVec3("viewPos", playerMovement.position);
-    terrainShader.SetUniformVec3("ambientColor", terrain.terrainMaterial.ambientColor);
-    terrainShader.SetUniformVec3("diffuseColor", terrain.terrainMaterial.diffusiveColor);
     terrainShader.SetUniformVec3("specularColor", terrain.terrainMaterial.specularColor);
     terrainShader.SetUniformVec3("lightDir", lightDir);
     terrainShader.SetUniformFloat("Ka", terrain.terrainMaterial.Ka);
@@ -101,13 +121,23 @@ int main()
     terrainShader.SetUniformFloat("Kd", terrain.terrainMaterial.Kd);
     terrainShader.SetUniformFloat("shininess", terrain.terrainMaterial.shininess);
     terrainShader.SetUniformFloat("lightIntensity", lightIntensity);
-    terrainShader.SetUniformInt("ElevationMap", 0);
     terrainShader.SetUniformInt("BiomeMap", 1);
-    terrainShader.SetUniformInt("Grass", 2);
-    terrainShader.SetUniformInt("Desert", 3);
-    terrainShader.SetUniformInt("Snow", 4);
-    terrainShader.SetUniformInt("Rock", 5);
+    terrainShader.SetUniformInt("Grass", terrain.terrainMaterial.Grass);
+    terrainShader.SetUniformInt("Desert", terrain.terrainMaterial.Sand);
+    terrainShader.SetUniformInt("Snow", terrain.terrainMaterial.Snow);
+    terrainShader.SetUniformInt("Rock", terrain.terrainMaterial.Rock);
 
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &ModelSubLocationIndex);
+    Tree TreeModel((modelsPath + "tree_obj.obj").c_str());
+    TreeModel.SetupTreePositions(terrain, TREE_ITERATION_NUMBER, TreeMap, thresholdTreeValue);
+    terrainShader.SetUniformMatrix4("model", TreeModelModel);
+    terrainShader.SetUniformVec3("specularColor", TreeModel.treeMaterial.specularColor);
+    terrainShader.SetUniformVec3("albedo", TreeModel.treeMaterial.albedo);
+    terrainShader.SetUniformFloat("Ka", TreeModel.treeMaterial.Ka);
+    terrainShader.SetUniformFloat("Ks", TreeModel.treeMaterial.Ks);
+    terrainShader.SetUniformFloat("Kd", TreeModel.treeMaterial.Kd);
+    terrainShader.SetUniformFloat("shininess", TreeModel.treeMaterial.shininess);
+    terrainShader.SetUniformFloat("lightIntensity", lightIntensity);
     
     // render loop
     while (!glfwWindowShouldClose(window))
@@ -115,6 +145,7 @@ int main()
         // input
         processInput(window);
         playerMovement.Move(window, WorldCamera);
+
         //ImGuI frame creation
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -123,12 +154,7 @@ int main()
         // render
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        terrainShader.UseProgram();
-        terrainShader.SetUniformMatrix4("view", WorldCamera);
-        terrainShader.SetUniformMatrix4("proj", WorldProjection);
-        terrainShader.SetUniformVec3("cameraPos", playerMovement.position);
-        terrainShader.SetUniformVec3("lightDir", lightDir);
-        terrainShader.SetUniformFloat("lightIntensity", lightIntensity);
+        
         if (isWireframe)
         {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -137,7 +163,29 @@ int main()
         {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
+
+        terrainShader.UseProgram();
+        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &TerrainSubLocationIndex);
+        terrainShader.SetUniformMatrix3("normalMatrix", TerrainNormalMatrix);
+        terrainShader.SetUniformMatrix4("model", TerrainModel);
+        terrainShader.SetUniformMatrix4("view", WorldCamera);
+        terrainShader.SetUniformVec3("cameraPos", playerMovement.position);
+        terrainShader.SetUniformVec3("lightDir", lightDir);
+        terrainShader.SetUniformFloat("lightIntensity", lightIntensity);
         terrain.DrawTerrain();
+
+        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &ModelSubLocationIndex);
+        for(int i = 0; i < TreeModel.treePositions.size(); i++)
+        {
+            TreeModelModel = glm::mat4(1.0f);
+            TreeModelModel = glm::translate(TreeModelModel, TreeModel.treePositions[i]);
+            TreeModelModel = glm::scale(TreeModelModel, glm::vec3(0.02f, 0.02f, 0.02f));
+            TreeNormalMatrix = glm::mat3(glm::inverseTranspose(TreeModelModel));
+            terrainShader.SetUniformMatrix3("normalMatrix", TreeNormalMatrix);
+            terrainShader.SetUniformMatrix4("model", TreeModelModel);
+            TreeModel.DrawTree();
+        }
+        
 
         //Setting of whole application UI
         ImGui::Begin("ProceduralWorld control panel ");
@@ -148,19 +196,32 @@ int main()
         ImGui::SliderFloat("XLightDir", &lightDir.x, -1.0f, 1.0f);
         ImGui::SliderFloat("YLightDir", &lightDir.y, 0.0f, 1.0f);
         ImGui::SliderFloat("LightIntensity", &lightIntensity, 0.0f, 7.0f);
+        ImGui::SliderFloat("Threshold tree value", &thresholdTreeValue, -3.0f, 3.0f);
         ImGui::End();
 
         //Rendering of application UI
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+        if(oldThresholdTreeValue != thresholdTreeValue)
+        {
+            oldThresholdTreeValue = thresholdTreeValue;
+            TreeModel.treePositions.clear();
+            TreeModel.SetupTreePositions(terrain, TREE_ITERATION_NUMBER, TreeMap, thresholdTreeValue);
+        }
+
         if(oldFrequency != frequency || oldAmplitude != amplitude || oldOctaves != octaves)
         {
-            recompute_heightMap(NoiseShader, NoiseText, BiomeNoiseText,terrain);
+            //Recompute Terrain
+            recompute_heightMap(NoiseShader,terrainShader,NoiseText, BiomeNoiseText, TreeNoiseText,terrain);
             oldFrequency = frequency;
             oldAmplitude = amplitude;
             oldOctaves = octaves;
             terrain.ReComputeMesh();
+
+            //Recompute Tree positions
+            TreeModel.treePositions.clear();
+            TreeModel.SetupTreePositions(terrain, TREE_ITERATION_NUMBER, TreeMap,thresholdTreeValue);
         }
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -254,20 +315,29 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     if(!isMouseVisible)
 		playerMovement.Rotate(xpos, ypos);
 }
-void recompute_heightMap(Shader& NoiseShader, Texture& NoiseText, Texture& BiomeNoiseText, TerrainGeneration& terrain)
+void recompute_heightMap(Shader& NoiseShader, Shader& terrainShader,Texture& NoiseText, Texture& BiomeNoiseText, Texture& TreeNoiseText, TerrainGeneration& terrain)
 {
     NoiseShader.UseProgram();
     NoiseShader.SetUniformFloat("amplitude", amplitude);
     NoiseShader.SetUniformFloat("frequency", frequency);
     NoiseShader.SetUniformInt("octaves", octaves);
-    
+
+
     NoiseText.BindTexture(GL_TEXTURE0);
+    glBindImageTexture(0, NoiseText.textureID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
     NoiseShader.DispatchCompute();
-    BiomeNoiseText.BindTexture(GL_TEXTURE1);
-    NoiseShader.DispatchCompute();
-    
     NoiseText.GetValuesFromTexture(terrain.ElevationMap.GetData());
-    NoiseText.BindTexture(GL_TEXTURE0);
-    BiomeNoiseText.GetValuesFromTexture(terrain.BiomeMap.GetData());
+
     BiomeNoiseText.BindTexture(GL_TEXTURE1);
+    glBindImageTexture(0, BiomeNoiseText.textureID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
+    NoiseShader.DispatchCompute();
+    BiomeNoiseText.GetValuesFromTexture(BiomeMap.GetData());
+
+    TreeNoiseText.BindTexture(GL_TEXTURE2);
+    glBindImageTexture(0, TreeNoiseText.textureID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
+    NoiseShader.DispatchCompute();
+    TreeNoiseText.GetValuesFromTexture(TreeMap.GetData());
+
+    terrainShader.UseProgram();
+    terrainShader.SetUniformInt("BiomeMap", 1);
 }

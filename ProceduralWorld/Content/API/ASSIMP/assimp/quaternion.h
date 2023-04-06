@@ -51,7 +51,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #   pragma GCC system_header
 #endif
 
-#include <assimp/defs.h>
+#include <Assimp/assimp/defs.h>
 
 // Forward declarations
 template <typename TReal> class aiVector3t;

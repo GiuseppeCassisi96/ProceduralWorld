@@ -52,14 +52,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 
-#include <assimp/types.h>
-#include <assimp/texture.h>
-#include <assimp/mesh.h>
-#include <assimp/light.h>
-#include <assimp/camera.h>
-#include <assimp/material.h>
-#include <assimp/anim.h>
-#include <assimp/metadata.h>
+#include <Assimp/assimp/types.h>
+#include <Assimp/assimp/texture.h>
+#include <Assimp/assimp/mesh.h>
+#include <Assimp/assimp/light.h>
+#include <Assimp/assimp/camera.h>
+#include <Assimp/assimp/material.h>
+#include <Assimp/assimp/anim.h>
+#include <Assimp/assimp/metadata.h>
 
 #ifdef __cplusplus
 #  include <cstdlib>
