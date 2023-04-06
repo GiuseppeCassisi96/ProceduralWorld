@@ -16,8 +16,8 @@ public:
 	Texture(const char* fileName, GLenum textureEnum);
 	void GetValuesFromTexture(std::vector<float>& fData);
 	void BindTexture(GLenum textureNum);
-private:
 	unsigned int textureID;
+private:
 	int TexWidth, TexHeight;
 };
 

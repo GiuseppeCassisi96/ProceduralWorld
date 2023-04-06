@@ -18,10 +18,12 @@ out vec3 vNormal;
 out vec3 viewDir;
 out vec3 vlightDir;
 out vec2 vUVCoord;
+out float vHeight;
 void main()
 {
 	//Vertex position in world space
 	vec4 worldVertexPos = model * vec4(aPos,1.0);
+	vHeight = worldVertexPos.y;
 	//Camera position in world space
 	vec4 worldcameraPos = model * vec4(cameraPos, 1.0);
 	//The view direction will be in world space
