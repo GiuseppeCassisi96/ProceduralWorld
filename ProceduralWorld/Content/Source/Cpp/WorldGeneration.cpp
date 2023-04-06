@@ -3,8 +3,7 @@
 #include <GLM/include/ext/quaternion_geometric.hpp>
 
 
-TerrainGeneration::TerrainGeneration(HeightMap& ElevationMap, HeightMap& BiomeMap) : ElevationMap(std::move(ElevationMap)), 
-BiomeMap(std::move(BiomeMap))
+TerrainGeneration::TerrainGeneration(HeightMap& ElevationMap) : ElevationMap(std::move(ElevationMap))
 {
     ComputeMesh();
     SetupBuffers();
@@ -17,7 +16,6 @@ void TerrainGeneration::ComputeMesh()
         for (int j = 0; j < MAP_RESOLUTION; j++)
         {
             float heightValue = ElevationMap.At(i, j);
-            float biomeValue = BiomeMap.At(j, i);
             const auto width = static_cast<float>(MAP_RESOLUTION);
             const auto height = static_cast<float>(MAP_RESOLUTION);
             const auto fi = static_cast<float>(i);
@@ -143,7 +141,6 @@ void TerrainGeneration::ReComputeMesh()
         for (int j = 0; j < MAP_RESOLUTION; j++)
         {
             float heightValue = ElevationMap.At(i, j);
-            float biomeValue = BiomeMap.At(i, j);
             float heightOfVertex;
             if (heightValue < 0.0f)
             {

@@ -14,7 +14,6 @@ uniform float Ks;
 uniform float shininess;
 //Intensity of light
 uniform float lightIntensity;
-uniform sampler2D ElevationMap;
 uniform sampler2D BiomeMap;
 uniform sampler2D Grass;
 uniform sampler2D Desert;
@@ -28,6 +27,7 @@ in vec3 vNormal;
 in vec3 viewDir;
 in vec3 vlightDir;
 in vec2 vUVCoord;
+in float vHeight;
 out vec4 fragColor;
 
 subroutine(light)
@@ -35,11 +35,9 @@ vec3 illuminationForTerrain()
 {
     //Texture
     vec3 initialColor;
-    float heightValue = texture(ElevationMap, vUVCoord).r;    
     float biomeValue = texture(BiomeMap, vUVCoord).r;    
-    heightValue = clamp(heightValue, -2.0f, 2.0f);
     biomeValue = clamp(biomeValue, -2.0f, 2.0f);
-    if (heightValue <= 0.5f)
+    if (vHeight <= 2.0f)
     {
         if (biomeValue < -1.0f)
         {

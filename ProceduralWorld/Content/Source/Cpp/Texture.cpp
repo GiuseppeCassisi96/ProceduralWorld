@@ -40,12 +40,13 @@ Texture::Texture(const char* fileName, GLenum textureEnum)
 	{
 		glGenTextures(1, &textureID);
 		glActiveTexture(textureEnum);
-		//We bind the texture obj with GL_TEXTURE_2D
+		//We bind the 'textureID' with textureEnum 
 		glBindTexture(GL_TEXTURE_2D, textureID);
+
 		/*Specify the settings for the two-dimensional texture loaded before
 		 *level: indicates the LoD used for the texture
 		 *internalFormat: specifies the number of color components in the texture
-		 *format: specifies the format of the pixel data
+		 *format: specifies the format of the texture data
 		 *border: this value must be 0
 		 *type: the type of data
 		 */
