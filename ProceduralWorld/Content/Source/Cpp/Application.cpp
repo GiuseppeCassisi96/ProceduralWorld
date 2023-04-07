@@ -40,8 +40,8 @@ HeightMap BiomeMap(MAP_RESOLUTION, MAP_RESOLUTION);
 HeightMap TreeMap(MAP_RESOLUTION, MAP_RESOLUTION);
 unsigned int TerrainSubLocationIndex, ModelSubLocationIndex;
 //Light
-glm::vec3 lightDir = glm::vec3(0.0f, 0.3f, 0.0f);
-float lightIntensity = 1.5f;
+glm::vec3 lightDir = glm::vec3(0.6f, 0.3f, 0.0f);
+float lightIntensity = 2.5f;
 //Tree
 float thresholdTreeValue = 0.5f;
 int main()
@@ -77,15 +77,13 @@ int main()
     NoiseShader.DispatchCompute();
     TreeNoiseText.GetValuesFromTexture(TreeMap.GetData());
 
-    Texture GrassTextures((texturesPath + "Grass.jpg").c_str(), GL_TEXTURE3);
-    Texture DesertTextures((texturesPath + "Sand.jpg").c_str(), GL_TEXTURE4);
-    Texture SnowTextures((texturesPath + "Snow.jpg").c_str(), GL_TEXTURE5);
-    Texture RockTextures((texturesPath + "Rock.jpg").c_str(), GL_TEXTURE6);
+    Texture StylizedGrassTexture((texturesPath + "StylizedGrass.jpg").c_str(), GL_TEXTURE3);
+    Texture StylizedLeavesTexture((texturesPath + "StylizedLeaves.jpg").c_str(), GL_TEXTURE4);
+    Texture StylizedRockTexture((texturesPath + "StylizedRock.jpg").c_str(), GL_TEXTURE5);
     
-    GrassTextures.BindTexture(GL_TEXTURE3);
-    DesertTextures.BindTexture(GL_TEXTURE4);
-    SnowTextures.BindTexture(GL_TEXTURE5);
-    RockTextures.BindTexture(GL_TEXTURE6);
+    StylizedGrassTexture.BindTexture(GL_TEXTURE3);
+    StylizedLeavesTexture.BindTexture(GL_TEXTURE4);
+    StylizedRockTexture.BindTexture(GL_TEXTURE5);
 
     Shader terrainShader{ (shadersPath + "TerrainShader.vert").c_str(),
                       (shadersPath + "TerrainShader.frag").c_str() };
@@ -122,13 +120,12 @@ int main()
     terrainShader.SetUniformFloat("shininess", terrain.terrainMaterial.shininess);
     terrainShader.SetUniformFloat("lightIntensity", lightIntensity);
     terrainShader.SetUniformInt("BiomeMap", 1);
-    terrainShader.SetUniformInt("Grass", terrain.terrainMaterial.Grass);
-    terrainShader.SetUniformInt("Desert", terrain.terrainMaterial.Sand);
-    terrainShader.SetUniformInt("Snow", terrain.terrainMaterial.Snow);
-    terrainShader.SetUniformInt("Rock", terrain.terrainMaterial.Rock);
+    terrainShader.SetUniformInt("Lawn", terrain.terrainMaterial.Lawn);
+    terrainShader.SetUniformInt("Forest", terrain.terrainMaterial.Forest);
+    terrainShader.SetUniformInt("Mountain", terrain.terrainMaterial.Mountain);
 
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &ModelSubLocationIndex);
-    Tree TreeModel((modelsPath + "tree_obj.obj").c_str());
+    Tree TreeModel((modelsPath + "TreeFinal.fbx").c_str());
     TreeModel.SetupTreePositions(terrain, TREE_ITERATION_NUMBER, TreeMap, thresholdTreeValue);
     terrainShader.SetUniformMatrix4("model", TreeModelModel);
     terrainShader.SetUniformVec3("specularColor", TreeModel.treeMaterial.specularColor);
@@ -179,7 +176,7 @@ int main()
         {
             TreeModelModel = glm::mat4(1.0f);
             TreeModelModel = glm::translate(TreeModelModel, TreeModel.treePositions[i]);
-            TreeModelModel = glm::scale(TreeModelModel, glm::vec3(0.02f, 0.02f, 0.02f));
+            TreeModelModel = glm::scale(TreeModelModel, glm::vec3(0.03f, 0.017f, 0.03f));
             TreeNormalMatrix = glm::mat3(glm::inverseTranspose(TreeModelModel));
             terrainShader.SetUniformMatrix3("normalMatrix", TreeNormalMatrix);
             terrainShader.SetUniformMatrix4("model", TreeModelModel);

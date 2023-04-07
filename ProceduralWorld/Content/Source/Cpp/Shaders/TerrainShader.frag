@@ -15,10 +15,9 @@ uniform float shininess;
 //Intensity of light
 uniform float lightIntensity;
 uniform sampler2D BiomeMap;
-uniform sampler2D Grass;
-uniform sampler2D Desert;
-uniform sampler2D Snow;
-uniform sampler2D Rock;
+uniform sampler2D Lawn;
+uniform sampler2D Forest;
+uniform sampler2D Mountain;
 // Subroutine Uniform (it is conceptually similar to a C pointer function)
 subroutine uniform  light illumination;
 
@@ -41,26 +40,26 @@ vec3 illuminationForTerrain()
     {
         if (biomeValue < -1.0f)
         {
-            initialColor = texture(Desert, vUVCoord * 100).rgb;
+            initialColor = texture(Forest, vUVCoord * 100).rgb;
         }
         else if (biomeValue < 1.0f)
         {
-            initialColor = texture(Grass, vUVCoord * 100).rgb;
+           initialColor = texture(Lawn, vUVCoord * 100).rgb;
         }
         else if (biomeValue <= 2.0f)
         {
-            initialColor = texture(Snow, vUVCoord * 100).rgb;
+            initialColor = vec3(0.9, 0.9, 0.9);
         }
     }
     else
     {
         if (biomeValue < 0.0f)
         {
-            initialColor = texture(Snow, vUVCoord * 100).rgb;
+            initialColor = vec3(0.9, 0.9, 0.9);
         }
         else if (biomeValue <= 2.0f)
         {
-            initialColor = texture(Rock, vUVCoord * 100).rgb;
+            initialColor = texture(Mountain, vUVCoord * 250).rgb;
         }
     }
 
@@ -97,12 +96,14 @@ vec3 illuminationForTerrain()
 subroutine(light)
 vec3 illuminationForModels()
 {
+//texture
+    vec3 initialColor = albedo;
    
 //LIGHT COMPUTATION 
 	vec3 N = normalize(vNormal);
 	vec3 L = normalize(vlightDir);
 	// ambient component can be calculated at the beginning
-    vec3 color = Ka*albedo;
+    vec3 color = Ka*initialColor;
     // Lambert coefficient
     float lambertian = max(dot(L,N), 0.0);
     // if the lambert coefficient is positive, then I can calculate the specular component
@@ -121,7 +122,7 @@ vec3 illuminationForModels()
 
         // We add diffusive and specular components to the final color
         // N.B. ): in this implementation, the sum of the components can be different than 1
-        color += lightIntensity * vec3( Kd * lambertian * albedo +
+        color += lightIntensity * vec3( Kd * lambertian * initialColor +
                         Ks * specular * specularColor);
     }
     return color;
