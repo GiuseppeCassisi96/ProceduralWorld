@@ -32,8 +32,8 @@ Movement playerMovement{ glm::vec3(0.0f, 0.0f, 7.0f), WorldCamera };
 std::string shadersPath = "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/ProceduralWorld/Content/Source/Cpp/Shaders/";
 std::string texturesPath = "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/ProceduralWorld/Content/Source/Textures/";
 std::string modelsPath = "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/ProceduralWorld/Content/Source/Models/";
-float amplitude = 3.0f;
-float frequency = 2.0f;
+float amplitude = 1.7f;
+float frequency = 3.5f;
 int octaves = 10;
 HeightMap ElevationMap(MAP_RESOLUTION, MAP_RESOLUTION);
 HeightMap BiomeMap(MAP_RESOLUTION, MAP_RESOLUTION);
@@ -125,7 +125,7 @@ int main()
     terrainShader.SetUniformInt("Mountain", terrain.terrainMaterial.Mountain);
 
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &ModelSubLocationIndex);
-    Tree TreeModel((modelsPath + "TreeFinal.fbx").c_str());
+    Tree TreeModel((modelsPath + "Tree.fbx").c_str());
     TreeModel.SetupTreePositions(terrain, TREE_ITERATION_NUMBER, TreeMap, thresholdTreeValue);
     terrainShader.SetUniformMatrix4("model", TreeModelModel);
     terrainShader.SetUniformVec3("specularColor", TreeModel.treeMaterial.specularColor);

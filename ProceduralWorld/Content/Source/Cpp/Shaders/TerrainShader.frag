@@ -27,6 +27,7 @@ in vec3 viewDir;
 in vec3 vlightDir;
 in vec2 vUVCoord;
 in float vHeight;
+in vec3 vColor;
 out vec4 fragColor;
 
 subroutine(light)
@@ -97,7 +98,7 @@ subroutine(light)
 vec3 illuminationForModels()
 {
 //texture
-    vec3 initialColor = albedo;
+    vec3 initialColor = vColor;
    
 //LIGHT COMPUTATION 
 	vec3 N = normalize(vNormal);

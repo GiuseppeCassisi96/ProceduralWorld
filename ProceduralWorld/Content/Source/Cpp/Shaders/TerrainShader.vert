@@ -5,6 +5,7 @@
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec2 aUVCoord;
 layout (location = 2) in vec3 aNormal;
+layout (location = 5) in vec3 aColor;
 
 
 uniform mat4 model;         
@@ -16,6 +17,7 @@ uniform vec3 cameraPos;
 
 out vec3 vNormal;
 out vec3 viewDir;
+out vec3 vColor;
 out vec3 vlightDir;
 out vec2 vUVCoord;
 out float vHeight;
@@ -32,5 +34,6 @@ void main()
 	vlightDir = (model * vec4(lightDir, 0.0)).xyz;
 	vNormal = normalize( normalMatrix * aNormal);
 	vUVCoord = aUVCoord;
+	vColor = aColor;
 	gl_Position = proj * view * worldVertexPos;
 }

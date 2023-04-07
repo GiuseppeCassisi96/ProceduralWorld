@@ -11,6 +11,7 @@ struct Vertex
 	glm::vec3 Normals;
 	glm::vec3 Tangent;
 	glm::vec3 BiTangent;
+	glm::vec3 Color;
 
 };
 class Mesh

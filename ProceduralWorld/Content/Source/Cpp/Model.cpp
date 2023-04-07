@@ -58,6 +58,8 @@ Mesh Model::ProcessMesh(aiMesh* mesh)
 		//Here I convert to assimp mesh data structure to Vertex data structure (NORMALS)
 		glm::vec3 normal{ mesh->mNormals[i].x,mesh->mNormals[i].y ,mesh->mNormals[i].z };
 		vertex.Normals = normal;
+		glm::vec3 color{ mesh->mColors[0][i].r, mesh->mColors[0][i].g, mesh->mColors[0][i].b};
+		vertex.Color = color;
 		if (mesh->mTextureCoords[0])
 		{
 			//Here I convert to assimp mesh data structure to Vertex data structure (UVCOORD)
