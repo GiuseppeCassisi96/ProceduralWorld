@@ -1,7 +1,7 @@
 #version 460 core
 
 // the "type" of the Subroutine
-subroutine vec3 light();
+subroutine vec4 light();
 
 // ambient, diffusive and specular components (passed from the application)
 uniform vec3 albedo;
@@ -18,8 +18,10 @@ uniform sampler2D BiomeMap;
 uniform sampler2D Lawn;
 uniform sampler2D Forest;
 uniform sampler2D Mountain;
+uniform samplerCube skybox;
 // Subroutine Uniform (it is conceptually similar to a C pointer function)
 subroutine uniform  light illumination;
+
 
 
 in vec3 vNormal;
@@ -28,10 +30,18 @@ in vec3 vlightDir;
 in vec2 vUVCoord;
 in float vHeight;
 in vec3 vColor;
+in vec3 skyVUVCoord;
 out vec4 fragColor;
 
 subroutine(light)
-vec3 illuminationForTerrain()
+vec4 SkyBoxFrag()
+{
+    return texture(skybox, skyVUVCoord);
+}
+
+
+subroutine(light)
+vec4 illuminationForTerrain()
 {
     //Texture
     vec3 initialColor;
@@ -90,12 +100,12 @@ vec3 illuminationForTerrain()
         color += lightIntensity * vec3( Kd * lambertian * initialColor +
                         Ks * specular * specularColor);
     }
-    return color;
+    return vec4(color, 1.0);
 }
 
 
 subroutine(light)
-vec3 illuminationForModels()
+vec4 illuminationForModels()
 {
 //texture
     vec3 initialColor = vColor;
@@ -126,11 +136,11 @@ vec3 illuminationForModels()
         color += lightIntensity * vec3( Kd * lambertian * initialColor +
                         Ks * specular * specularColor);
     }
-    return color;
+    return vec4(color, 1.0);
 }
 
 
 void main()
 {
-	fragColor = vec4(illumination(), 1.0);
+	fragColor = illumination();
 }

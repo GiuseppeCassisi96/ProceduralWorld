@@ -14,6 +14,7 @@
 #include <GLM/include/gtc/matrix_inverse.hpp>
 #include <GLM/include/gtc/type_ptr.hpp>
 #include "Tree.h"
+#include "SkyBox.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -32,13 +33,15 @@ Movement playerMovement{ glm::vec3(0.0f, 0.0f, 7.0f), WorldCamera };
 std::string shadersPath = "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/ProceduralWorld/Content/Source/Cpp/Shaders/";
 std::string texturesPath = "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/ProceduralWorld/Content/Source/Textures/";
 std::string modelsPath = "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/ProceduralWorld/Content/Source/Models/";
+std::string skyPath = "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/ProceduralWorld/Content/Source/Textures/SkyBox/";
 float amplitude = 1.7f;
 float frequency = 3.5f;
 int octaves = 10;
 HeightMap ElevationMap(MAP_RESOLUTION, MAP_RESOLUTION);
 HeightMap BiomeMap(MAP_RESOLUTION, MAP_RESOLUTION);
 HeightMap TreeMap(MAP_RESOLUTION, MAP_RESOLUTION);
-unsigned int TerrainSubLocationIndex, ModelSubLocationIndex;
+unsigned int TerrainSubLocationIndex, ModelSubLocationIndex, SkySubLocationIndex;
+unsigned int TerrainSubVertexLoc, ModelSubVertexLoc, SkySubVertexLoc;
 //Light
 glm::vec3 lightDir = glm::vec3(0.6f, 0.3f, 0.0f);
 float lightIntensity = 2.5f;
@@ -104,8 +107,18 @@ int main()
         "illuminationForTerrain");
     ModelSubLocationIndex = glGetSubroutineIndex(terrainShader.GetProgram(), GL_FRAGMENT_SHADER,
         "illuminationForModels");
+	SkySubLocationIndex = glGetSubroutineIndex(terrainShader.GetProgram(), GL_FRAGMENT_SHADER,
+        "SkyBoxFrag");
+
+    TerrainSubVertexLoc = glGetSubroutineIndex(terrainShader.GetProgram(), GL_VERTEX_SHADER,
+        "TreeAndTerrain");
+    ModelSubVertexLoc = glGetSubroutineIndex(terrainShader.GetProgram(), GL_VERTEX_SHADER,
+        "TreeAndTerrain");
+    SkySubVertexLoc = glGetSubroutineIndex(terrainShader.GetProgram(), GL_VERTEX_SHADER,
+        "SkyBoxVert");
 
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &TerrainSubLocationIndex);
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &TerrainSubLocationIndex);
 
     terrainShader.UseProgram();
     terrainShader.SetUniformMatrix4("model", TerrainModel);
@@ -125,6 +138,8 @@ int main()
     terrainShader.SetUniformInt("Mountain", terrain.terrainMaterial.Mountain);
 
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &ModelSubLocationIndex);
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &ModelSubVertexLoc);
+
     Tree TreeModel((modelsPath + "Tree.fbx").c_str());
     TreeModel.SetupTreePositions(terrain, TREE_ITERATION_NUMBER, TreeMap, thresholdTreeValue);
     terrainShader.SetUniformMatrix4("model", TreeModelModel);
@@ -135,6 +150,12 @@ int main()
     terrainShader.SetUniformFloat("Kd", TreeModel.treeMaterial.Kd);
     terrainShader.SetUniformFloat("shininess", TreeModel.treeMaterial.shininess);
     terrainShader.SetUniformFloat("lightIntensity", lightIntensity);
+
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &SkySubLocationIndex);
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &SkySubVertexLoc);
+    SkyBox sky(skyPath);
+    sky.CreateTexture(GL_TEXTURE6);
+    terrainShader.SetUniformInt("skybox", 6);
     
     // render loop
     while (!glfwWindowShouldClose(window))
@@ -163,6 +184,8 @@ int main()
 
         terrainShader.UseProgram();
         glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &TerrainSubLocationIndex);
+        glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &TerrainSubVertexLoc);
+
         terrainShader.SetUniformMatrix3("normalMatrix", TerrainNormalMatrix);
         terrainShader.SetUniformMatrix4("model", TerrainModel);
         terrainShader.SetUniformMatrix4("view", WorldCamera);
@@ -172,6 +195,8 @@ int main()
         terrain.DrawTerrain();
 
         glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &ModelSubLocationIndex);
+        glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &ModelSubVertexLoc);
+
         for(int i = 0; i < TreeModel.treePositions.size(); i++)
         {
             TreeModelModel = glm::mat4(1.0f);
@@ -182,7 +207,18 @@ int main()
             terrainShader.SetUniformMatrix4("model", TreeModelModel);
             TreeModel.DrawTree();
         }
-        
+
+        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &SkySubLocationIndex);
+        glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &SkySubVertexLoc);
+
+        //change depth function so depth test passes when values are equal to depth buffer's content
+        glDepthFunc(GL_LEQUAL);
+        glm::mat4 skyView = glm::mat4(1.0f);
+        skyView = glm::mat4(glm::mat3(WorldCamera));
+        terrainShader.SetUniformMatrix4("view", skyView);
+        sky.DrawSkyBox(GL_TEXTURE6);
+        //set depth function back to default
+        glDepthFunc(GL_LESS);
 
         //Setting of whole application UI
         ImGui::Begin("ProceduralWorld control panel ");
@@ -290,6 +326,7 @@ GLFWwindow* Setup(GLFWwindow* window)
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
 
+
     // glad: load all OpenGL function pointers
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
@@ -297,7 +334,6 @@ GLFWwindow* Setup(GLFWwindow* window)
         exit(-1);
     }
     glEnable(GL_DEPTH_TEST);
-
     //ImGUI setup
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
