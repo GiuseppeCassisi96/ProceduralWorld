@@ -1,17 +1,17 @@
 #include "Tree.h"
 
 
-Tree::Tree(const std::string& path, std::vector<glm::mat4> treePositions, std::vector<glm::mat3> treeNormalMat)
-: Model(path, treePositions, treeNormalMat){}
+Tree::Tree(const std::string& path, std::vector<glm::mat4> treePositions)
+: Model(path, treePositions){}
 
 void Tree::DrawTree()
 {
 	DrawModel();
 }
 
-void Tree::RecomputeTree(std::vector<glm::mat4>& treePositions, std::vector<glm::mat3>& treeNormalMat)
+void Tree::RecomputeTree(std::vector<glm::mat4>& treePositions)
 {
-	RecomputeModel(treePositions, treeNormalMat);
+	RecomputeModel(treePositions);
 }
 
 

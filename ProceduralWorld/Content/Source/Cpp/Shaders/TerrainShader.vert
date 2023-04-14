@@ -9,7 +9,6 @@ layout (location = 3) in vec3 aTangent;
 layout (location = 4) in vec3 aBiTangent;
 layout (location = 5) in vec3 aColor;
 layout(location = 6) in mat4 aInstanceModel;
-layout(location = 10) in mat3 aInstanceNormMatrix;
 
 subroutine vec4 VertexComp();
 

@@ -44,7 +44,6 @@ HeightMap TreeMap(MAP_RESOLUTION, MAP_RESOLUTION);
 unsigned int TerrainSubLocationIndex, ModelSubLocationIndex, SkySubLocationIndex;
 unsigned int TerrainSubVertexLoc, ModelSubVertexLoc, SkySubVertexLoc;
 std::vector<glm::mat4> treeModels;
-std::vector<glm::mat3> treeNormalMat;
 //Light
 glm::vec3 lightDir = glm::vec3(0.6f, 0.3f, 0.0f);
 float lightIntensity = 2.5f;
@@ -141,7 +140,7 @@ int main()
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &ModelSubVertexLoc);
 
     SetupTreePositions(terrain, TREE_ITERATION_NUMBER, TreeMap, thresholdTreeValue);
-    Tree TreeModel((modelsPath + "Tree.fbx").c_str(),treeModels, treeNormalMat);
+    Tree TreeModel((modelsPath + "Tree.fbx").c_str(),treeModels);
     terrainShader.SetUniformVec3("specularColor", TreeModel.treeMaterial.specularColor);
     terrainShader.SetUniformVec3("albedo", TreeModel.treeMaterial.albedo);
     terrainShader.SetUniformFloat("Ka", TreeModel.treeMaterial.Ka);
@@ -191,10 +190,21 @@ int main()
         terrainShader.SetUniformVec3("cameraPos", playerMovement.position);
         terrainShader.SetUniformVec3("lightDir", lightDir);
         terrainShader.SetUniformFloat("lightIntensity", lightIntensity);
+        terrainShader.SetUniformFloat("Ka", terrain.terrainMaterial.Ka);
+        terrainShader.SetUniformFloat("Ks", terrain.terrainMaterial.Ks);
+        terrainShader.SetUniformFloat("Kd", terrain.terrainMaterial.Kd);
+        terrainShader.SetUniformFloat("shininess", terrain.terrainMaterial.shininess);
+        terrainShader.SetUniformVec3("specularColor", terrain.terrainMaterial.specularColor);
         terrain.DrawTerrain();
 
         glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &ModelSubLocationIndex);
         glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &ModelSubVertexLoc);
+        terrainShader.SetUniformVec3("specularColor", TreeModel.treeMaterial.specularColor);
+        terrainShader.SetUniformVec3("albedo", TreeModel.treeMaterial.albedo);
+        terrainShader.SetUniformFloat("Ka", TreeModel.treeMaterial.Ka);
+        terrainShader.SetUniformFloat("Ks", TreeModel.treeMaterial.Ks);
+        terrainShader.SetUniformFloat("Kd", TreeModel.treeMaterial.Kd);
+        terrainShader.SetUniformFloat("shininess", TreeModel.treeMaterial.shininess);
         TreeModel.DrawTree();
 
         glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &SkySubLocationIndex);
@@ -230,9 +240,8 @@ int main()
         {
             oldThresholdTreeValue = thresholdTreeValue;
             treeModels.clear();
-            treeNormalMat.clear();
             SetupTreePositions(terrain, TREE_ITERATION_NUMBER, TreeMap, thresholdTreeValue);
-            TreeModel.RecomputeTree(treeModels, treeNormalMat);
+            TreeModel.RecomputeTree(treeModels);
         }
 
         if(oldFrequency != frequency || oldAmplitude != amplitude || oldOctaves != octaves)
@@ -246,9 +255,8 @@ int main()
 
             //Recompute Tree positions
             treeModels.clear();
-            treeNormalMat.clear();
             SetupTreePositions(terrain, TREE_ITERATION_NUMBER, TreeMap,thresholdTreeValue);
-            TreeModel.RecomputeTree(treeModels, treeNormalMat);
+            TreeModel.RecomputeTree(treeModels);
         }
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -381,10 +389,7 @@ void SetupTreePositions(TerrainGeneration& terrainData, int numberOfIterations, 
             glm::mat4 TreeModelModel = glm::mat4(1.0f);
             TreeModelModel = glm::translate(TreeModelModel, treePosition);
             TreeModelModel = glm::scale(TreeModelModel, glm::vec3(0.03f, 0.017f, 0.03f));
-            glm::mat3 TreeNormalMatrix = glm::mat3(glm::inverseTranspose(TreeModelModel));
-           
             treeModels.emplace_back(TreeModelModel);
-            treeNormalMat.emplace_back(TreeNormalMatrix);
         }
         count++;
 
