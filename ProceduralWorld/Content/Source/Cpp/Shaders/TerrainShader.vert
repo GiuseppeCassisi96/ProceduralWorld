@@ -8,6 +8,8 @@ layout (location = 2) in vec3 aNormal;
 layout (location = 3) in vec3 aTangent;
 layout (location = 4) in vec3 aBiTangent;
 layout (location = 5) in vec3 aColor;
+layout(location = 6) in mat4 aInstanceModel;
+layout(location = 10) in mat3 aInstanceNormMatrix;
 
 subroutine vec4 VertexComp();
 
@@ -30,7 +32,7 @@ out vec3 skyVUVCoord;
 out float vHeight;
 
 subroutine (VertexComp)
-vec4 TreeAndTerrain()
+vec4 TerrainVert()
 {
 	//Vertex position in world space
 	vec4 worldVertexPos = model * vec4(aPos,1.0);
@@ -42,6 +44,24 @@ vec4 TreeAndTerrain()
 	//Light direction in world space
 	vlightDir = (model * vec4(lightDir, 0.0)).xyz;
 	vNormal = normalize( normalMatrix * aNormal);
+	vUVCoord = aUVCoord;
+	vColor = aColor;
+	return proj * view * worldVertexPos;
+}
+
+subroutine (VertexComp)
+vec4 TreeVert()
+{
+	//Vertex position in world space
+	vec4 worldVertexPos = aInstanceModel * vec4(aPos,1.0);
+	vHeight = worldVertexPos.y;
+	//Camera position in world space
+	vec4 worldcameraPos = aInstanceModel * vec4(cameraPos, 1.0);
+	//The view direction will be in world space
+	viewDir = normalize(worldcameraPos.xyz - worldVertexPos.xyz);
+	//Light direction in world space
+	vlightDir = (aInstanceModel * vec4(lightDir, 0.0)).xyz;
+	vNormal = normalize( mat3(inverse(transpose(aInstanceModel))) * aNormal);
 	vUVCoord = aUVCoord;
 	vColor = aColor;
 	return proj * view * worldVertexPos;

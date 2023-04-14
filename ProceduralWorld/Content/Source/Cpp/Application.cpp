@@ -22,6 +22,7 @@ void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void recompute_heightMap(Shader& NoiseShader, Shader& terrainShader,Texture& NoiseText, Texture& BiomeNoiseText, Texture& TreeNoiseText, TerrainGeneration& terrain);
 GLFWwindow* Setup(GLFWwindow* window);
+void SetupTreePositions(TerrainGeneration& terrainData, int numberOfIterations, HeightMap& TreeMap, float thresholdTreeValue);
 
 //Global vars
 bool isWireframe = false;
@@ -42,6 +43,8 @@ HeightMap BiomeMap(MAP_RESOLUTION, MAP_RESOLUTION);
 HeightMap TreeMap(MAP_RESOLUTION, MAP_RESOLUTION);
 unsigned int TerrainSubLocationIndex, ModelSubLocationIndex, SkySubLocationIndex;
 unsigned int TerrainSubVertexLoc, ModelSubVertexLoc, SkySubVertexLoc;
+std::vector<glm::mat4> treeModels;
+std::vector<glm::mat3> treeNormalMat;
 //Light
 glm::vec3 lightDir = glm::vec3(0.6f, 0.3f, 0.0f);
 float lightIntensity = 2.5f;
@@ -95,9 +98,6 @@ int main()
 	glm::mat4 TerrainModel = glm::mat4(1.0f);
     glm::mat3 TerrainNormalMatrix = glm::mat3(1.0f);
 
-    glm::mat4 TreeModelModel = glm::mat4(1.0f);
-    glm::mat3 TreeNormalMatrix = glm::mat3(1.0f);
-
     TerrainModel = glm::translate(TerrainModel, glm::vec3(0.0f));
     TerrainNormalMatrix = glm::inverseTranspose(glm::mat3(TerrainModel));
 
@@ -111,9 +111,9 @@ int main()
         "SkyBoxFrag");
 
     TerrainSubVertexLoc = glGetSubroutineIndex(terrainShader.GetProgram(), GL_VERTEX_SHADER,
-        "TreeAndTerrain");
+        "TerrainVert");
     ModelSubVertexLoc = glGetSubroutineIndex(terrainShader.GetProgram(), GL_VERTEX_SHADER,
-        "TreeAndTerrain");
+        "TreeVert");
     SkySubVertexLoc = glGetSubroutineIndex(terrainShader.GetProgram(), GL_VERTEX_SHADER,
         "SkyBoxVert");
 
@@ -140,9 +140,8 @@ int main()
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &ModelSubLocationIndex);
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &ModelSubVertexLoc);
 
-    Tree TreeModel((modelsPath + "Tree.fbx").c_str());
-    TreeModel.SetupTreePositions(terrain, TREE_ITERATION_NUMBER, TreeMap, thresholdTreeValue);
-    terrainShader.SetUniformMatrix4("model", TreeModelModel);
+    SetupTreePositions(terrain, TREE_ITERATION_NUMBER, TreeMap, thresholdTreeValue);
+    Tree TreeModel((modelsPath + "Tree.fbx").c_str(),treeModels, treeNormalMat);
     terrainShader.SetUniformVec3("specularColor", TreeModel.treeMaterial.specularColor);
     terrainShader.SetUniformVec3("albedo", TreeModel.treeMaterial.albedo);
     terrainShader.SetUniformFloat("Ka", TreeModel.treeMaterial.Ka);
@@ -196,17 +195,7 @@ int main()
 
         glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &ModelSubLocationIndex);
         glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &ModelSubVertexLoc);
-
-        for(int i = 0; i < TreeModel.treePositions.size(); i++)
-        {
-            TreeModelModel = glm::mat4(1.0f);
-            TreeModelModel = glm::translate(TreeModelModel, TreeModel.treePositions[i]);
-            TreeModelModel = glm::scale(TreeModelModel, glm::vec3(0.03f, 0.017f, 0.03f));
-            TreeNormalMatrix = glm::mat3(glm::inverseTranspose(TreeModelModel));
-            terrainShader.SetUniformMatrix3("normalMatrix", TreeNormalMatrix);
-            terrainShader.SetUniformMatrix4("model", TreeModelModel);
-            TreeModel.DrawTree();
-        }
+        TreeModel.DrawTree();
 
         glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &SkySubLocationIndex);
         glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &SkySubVertexLoc);
@@ -230,6 +219,7 @@ int main()
         ImGui::SliderFloat("YLightDir", &lightDir.y, 0.0f, 1.0f);
         ImGui::SliderFloat("LightIntensity", &lightIntensity, 0.0f, 7.0f);
         ImGui::SliderFloat("Threshold tree value", &thresholdTreeValue, -3.0f, 3.0f);
+        ImGui::Text("Frame time: %fms", playerMovement.deltaTime);
         ImGui::End();
 
         //Rendering of application UI
@@ -239,8 +229,10 @@ int main()
         if(oldThresholdTreeValue != thresholdTreeValue)
         {
             oldThresholdTreeValue = thresholdTreeValue;
-            TreeModel.treePositions.clear();
-            TreeModel.SetupTreePositions(terrain, TREE_ITERATION_NUMBER, TreeMap, thresholdTreeValue);
+            treeModels.clear();
+            treeNormalMat.clear();
+            SetupTreePositions(terrain, TREE_ITERATION_NUMBER, TreeMap, thresholdTreeValue);
+            TreeModel.RecomputeTree(treeModels, treeNormalMat);
         }
 
         if(oldFrequency != frequency || oldAmplitude != amplitude || oldOctaves != octaves)
@@ -253,8 +245,10 @@ int main()
             terrain.ReComputeMesh();
 
             //Recompute Tree positions
-            TreeModel.treePositions.clear();
-            TreeModel.SetupTreePositions(terrain, TREE_ITERATION_NUMBER, TreeMap,thresholdTreeValue);
+            treeModels.clear();
+            treeNormalMat.clear();
+            SetupTreePositions(terrain, TREE_ITERATION_NUMBER, TreeMap,thresholdTreeValue);
+            TreeModel.RecomputeTree(treeModels, treeNormalMat);
         }
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -373,4 +367,26 @@ void recompute_heightMap(Shader& NoiseShader, Shader& terrainShader,Texture& Noi
 
     terrainShader.UseProgram();
     terrainShader.SetUniformInt("BiomeMap", 1);
+}
+void SetupTreePositions(TerrainGeneration& terrainData, int numberOfIterations, HeightMap& TreeMap, float thresholdTreeValue)
+{
+    int count = 0;
+    while (count < numberOfIterations)
+    {
+        const int xRandIndex = rand() % MAP_RESOLUTION;
+        const int yRandIndex = rand() % MAP_RESOLUTION;
+        if (TreeMap.At(yRandIndex, xRandIndex) >= thresholdTreeValue)
+        {
+            const glm::vec3 treePosition = terrainData.vertices[yRandIndex * MAP_RESOLUTION + xRandIndex].Position;
+            glm::mat4 TreeModelModel = glm::mat4(1.0f);
+            TreeModelModel = glm::translate(TreeModelModel, treePosition);
+            TreeModelModel = glm::scale(TreeModelModel, glm::vec3(0.03f, 0.017f, 0.03f));
+            glm::mat3 TreeNormalMatrix = glm::mat3(glm::inverseTranspose(TreeModelModel));
+           
+            treeModels.emplace_back(TreeModelModel);
+            treeNormalMat.emplace_back(TreeNormalMatrix);
+        }
+        count++;
+
+    }
 }

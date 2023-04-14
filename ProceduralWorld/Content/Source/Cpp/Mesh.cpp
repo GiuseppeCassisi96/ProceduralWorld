@@ -1,11 +1,13 @@
 #include "Mesh.h"
 
+#include <iostream>
+
 
 // We use initializer list and std::move in order to avoid a copy of the arguments
 Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices,
-	const std::vector<glm::mat4>& meshPositions) noexcept :
+	const std::vector<glm::mat4>& meshPositions, const std::vector<glm::mat3>& meshNormalMat) noexcept :
 	meshVertices{ std::move(vertices) }, meshIndices{ std::move(indices) },
-	meshPositions{ meshPositions }
+	meshPositions{ meshPositions }, meshNormalMat(meshNormalMat)
 {
 	SetupMesh();
 }
@@ -67,8 +69,6 @@ void Mesh::SetupMesh()
 	glBufferData(GL_ARRAY_BUFFER, meshVertices.size() * sizeof(Vertex), meshVertices.data(), GL_STATIC_DRAW);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, meshIndices.size() * sizeof(unsigned int), meshIndices.data(), GL_STATIC_DRAW);
 
-
-
 	//Here I define how my VBO is structured (offset, type, data structure)
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(0));
 	glEnableVertexAttribArray(0);
@@ -88,6 +88,52 @@ void Mesh::SetupMesh()
 	glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, Color)));
 	glEnableVertexAttribArray(5);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	if (!meshPositions.empty())
+	{
+		glGenBuffers(1, &instanceVBO);
+		glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+		glBufferData(GL_ARRAY_BUFFER, meshPositions.size() * sizeof(glm::mat4),
+			meshPositions.data(), GL_DYNAMIC_DRAW);
+		glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(0));
+		glEnableVertexAttribArray(6);
+
+		glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+		glEnableVertexAttribArray(7);
+
+		glVertexAttribPointer(8, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+		glEnableVertexAttribArray(8);
+
+		glVertexAttribPointer(9, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+		glEnableVertexAttribArray(9);
+
+		glVertexAttribDivisor(6, 1);
+		glVertexAttribDivisor(7, 1);
+		glVertexAttribDivisor(8, 1);
+		glVertexAttribDivisor(9, 1);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		//Normal matrix
+		glGenBuffers(1, &normalInstanceVBO);
+		glBindBuffer(GL_ARRAY_BUFFER, normalInstanceVBO);
+		glBufferData(GL_ARRAY_BUFFER, meshNormalMat.size() * sizeof(glm::mat3),
+			meshNormalMat.data(), GL_DYNAMIC_DRAW);
+		glVertexAttribPointer(10, 3, GL_FLOAT, GL_FALSE, sizeof(glm::mat3), (void*)(0));
+		glEnableVertexAttribArray(10);
+
+		glVertexAttribPointer(11, 3, GL_FLOAT, GL_FALSE, sizeof(glm::mat3), (void*)(sizeof(glm::vec3)));
+		glEnableVertexAttribArray(11);
+
+		glVertexAttribPointer(12, 3, GL_FLOAT, GL_FALSE, sizeof(glm::mat3), (void*)(2 * sizeof(glm::vec3)));
+		glEnableVertexAttribArray(12);
+
+		glVertexAttribDivisor(10, 1);
+		glVertexAttribDivisor(11, 1);
+		glVertexAttribDivisor(12, 1);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		
+	}
+	glBindVertexArray(0);
 }
 
 void Mesh::FreeGPUResources()
@@ -104,7 +150,35 @@ void Mesh::FreeGPUResources()
 
 void Mesh::DrawMesh()
 {
-	glBindVertexArray(VAO);
-	glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(meshIndices.size()), GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
+	if (!meshPositions.empty())
+	{
+		glBindVertexArray(VAO);
+		glDrawElementsInstanced(GL_TRIANGLES, static_cast<GLsizei>(meshIndices.size()), GL_UNSIGNED_INT, 0, static_cast<GLsizei>(meshPositions.size()));
+		glBindVertexArray(0);
+	}
+	else
+	{
+		glBindVertexArray(VAO);
+		glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(meshIndices.size()), GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+	}
+}
+
+void Mesh::RecomputeMesh(std::vector<glm::mat4>& meshPositions, std::vector<glm::mat3>& meshNormalMat)
+{
+	this->meshPositions = meshPositions;
+	if(meshPositions.size() != 0)
+	{
+		glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+		glBufferData(GL_ARRAY_BUFFER, meshPositions.size() * sizeof(glm::mat4),
+			meshPositions.data(), GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ARRAY_BUFFER, normalInstanceVBO);
+		glBufferData(GL_ARRAY_BUFFER, meshNormalMat.size() * sizeof(glm::mat3),
+			meshNormalMat.data(), GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	}
+	
+
 }

@@ -20,7 +20,8 @@ class Mesh
 public:
 	//Constructor
 	Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices,
-		const std::vector<glm::mat4>& meshPositions = std::vector<glm::mat4>{ 0 }) noexcept;
+		const std::vector<glm::mat4>& meshPositions = std::vector<glm::mat4>{ 0 }, 
+		const std::vector<glm::mat3>& meshNormalMat = std::vector<glm::mat3>{ 0 }) noexcept;
 
 	//COPY
 	Mesh(const Mesh& mesh) = delete;
@@ -37,9 +38,11 @@ public:
 	std::vector<Vertex> meshVertices;
 	std::vector<unsigned int> meshIndices;
 	void DrawMesh();
+	void RecomputeMesh(std::vector<glm::mat4>& meshPositions, std::vector<glm::mat3>& meshNormalMat);
 private:
-	unsigned int VBO, EBO, VAO, instanceVBO;
+	unsigned int VBO, EBO, VAO, instanceVBO, normalInstanceVBO;
 	std::vector<glm::mat4> meshPositions;
+	std::vector<glm::mat3> meshNormalMat;
 	void FreeGPUResources();
 	void SetupMesh();
 };

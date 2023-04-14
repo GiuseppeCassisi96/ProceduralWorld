@@ -5,9 +5,9 @@
 class Tree : public Model
 {
 public:
-	Tree(const std::string& path);
+	Tree(const std::string& path, std::vector<glm::mat4> treePositions, std::vector<glm::mat3> treeNormalMat);
 	void DrawTree();
-	void SetupTreePositions(TerrainGeneration& terrainData, int numberOfTree, HeightMap& TreeMap, float thresholdTreeValue);
+	void RecomputeTree(std::vector<glm::mat4>& treePositions, std::vector<glm::mat3>& treeNormalMat);
 	struct TreeMat
 	{
 		glm::vec3 specularColor = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -18,9 +18,9 @@ public:
 		float shininess = 5000.0f;
 	};
 	TreeMat treeMaterial;
-	std::vector<glm::vec3> treePositions;
-	
-
+private:
+	std::vector<glm::mat4> treePositions;
+	std::vector<glm::mat3> treeNormalMat;
 };
 
 

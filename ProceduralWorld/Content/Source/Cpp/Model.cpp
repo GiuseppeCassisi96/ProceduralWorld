@@ -2,7 +2,8 @@
 #include "Model.h"
 #include <iostream>
 
-Model::Model(const std::string& path)
+Model::Model(const std::string& path, std::vector<glm::mat4> modelPositions, std::vector<glm::mat3> modelNormalMat)
+	: modelPositions(modelPositions), modelNormalMat(modelNormalMat)
 {
 	LoadModel(path);
 }
@@ -89,6 +90,10 @@ Mesh Model::ProcessMesh(aiMesh* mesh)
 			indices.emplace_back(face.mIndices[j]);
 		}
 	}
+	if(modelPositions.size() > 1)
+	{
+		return Mesh(vertices, indices, modelPositions, modelNormalMat);
+	}
 	return Mesh(vertices, indices);
 }
 
@@ -98,5 +103,13 @@ void Model::DrawModel()
 	for (unsigned int i = 0; i < meshes.size(); i++)
 	{
 		meshes[i].DrawMesh();
+	}
+}
+
+void Model::RecomputeModel(std::vector<glm::mat4>& modelPositions, std::vector<glm::mat3>& modelNormalMat)
+{
+	for(int i = 0; i < meshes.size(); i++)
+	{
+		meshes[i].RecomputeMesh(modelPositions, modelNormalMat);
 	}
 }
