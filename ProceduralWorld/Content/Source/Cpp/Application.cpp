@@ -35,8 +35,8 @@ std::string shadersPath = "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/Proc
 std::string texturesPath = "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/ProceduralWorld/Content/Source/Textures/";
 std::string modelsPath = "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/ProceduralWorld/Content/Source/Models/";
 std::string skyPath = "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/ProceduralWorld/Content/Source/Textures/SkyBox/";
-float amplitude = 1.7f;
-float frequency = 3.5f;
+float amplitude = 3.0f;
+float frequency = 1.6f;
 int octaves = 10;
 HeightMap ElevationMap(MAP_RESOLUTION, MAP_RESOLUTION);
 HeightMap BiomeMap(MAP_RESOLUTION, MAP_RESOLUTION);

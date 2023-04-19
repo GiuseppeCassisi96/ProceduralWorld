@@ -28,14 +28,12 @@ out vec3 vColor;
 out vec3 vlightDir;
 out vec2 vUVCoord;
 out vec3 skyVUVCoord;
-out float vHeight;
 
 subroutine (VertexComp)
 vec4 TerrainVert()
 {
 	//Vertex position in world space
 	vec4 worldVertexPos = model * vec4(aPos,1.0);
-	vHeight = worldVertexPos.y;
 	//Camera position in world space
 	vec4 worldcameraPos = model * vec4(cameraPos, 1.0);
 	//The view direction will be in world space
@@ -53,7 +51,6 @@ vec4 TreeVert()
 {
 	//Vertex position in world space
 	vec4 worldVertexPos = aInstanceModel * vec4(aPos,1.0);
-	vHeight = worldVertexPos.y;
 	//Camera position in world space
 	vec4 worldcameraPos = aInstanceModel * vec4(cameraPos, 1.0);
 	//The view direction will be in world space

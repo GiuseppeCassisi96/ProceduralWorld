@@ -22,15 +22,16 @@ uniform samplerCube skybox;
 // Subroutine Uniform (it is conceptually similar to a C pointer function)
 subroutine uniform  light illumination;
 
+const float range = 0.3;
 
 
 in vec3 vNormal;
 in vec3 viewDir;
 in vec3 vlightDir;
 in vec2 vUVCoord;
-in float vHeight;
 in vec3 vColor;
 in vec3 skyVUVCoord;
+in float vHeight;
 out vec4 fragColor;
 
 subroutine(light)
@@ -45,35 +46,42 @@ vec4 illuminationForTerrain()
 {
     //Texture
     vec3 initialColor;
-    float biomeValue = texture(BiomeMap, vUVCoord).r;    
-    biomeValue = clamp(biomeValue, -2.0f, 2.0f);
-    if (vHeight <= 2.0f)
+    float biomeValue = texture(BiomeMap, vUVCoord).r  ;   
+    biomeValue = clamp(biomeValue, -3.0f, 3.0f) ;
+    float firstBiomeLimit = -1.0;
+    float secondBiomeLimit = 0.0;
+    float thirdBiomeLimit =  1.5;
+    if(biomeValue <= secondBiomeLimit - range)
     {
-        if (biomeValue < -1.0f)
-        {
-            initialColor = texture(Forest, vUVCoord * 100).rgb;
-        }
-        else if (biomeValue < 1.0f)
-        {
-           initialColor = texture(Lawn, vUVCoord * 100).rgb;
-        }
-        else if (biomeValue <= 2.0f)
-        {
-            initialColor = vec3(0.9, 0.9, 0.9);
-        }
+        vec3 color1 = texture(Lawn, vUVCoord * 300.0).rgb;
+        vec3 color2 = texture(Forest, vUVCoord * 300.0).rgb;
+        float minLimit = firstBiomeLimit - range; 
+        float maxLimit = firstBiomeLimit + range; 
+        float interpValue = (biomeValue - minLimit) / (maxLimit - minLimit);
+        interpValue = smoothstep(0.0, 1.0, interpValue);
+        initialColor = mix(color1, color2, interpValue);
     }
-    else
+    else if(biomeValue <= thirdBiomeLimit - range)
     {
-        if (biomeValue < 0.0f)
-        {
-            initialColor = vec3(0.9, 0.9, 0.9);
-        }
-        else if (biomeValue <= 2.0f)
-        {
-            initialColor = texture(Mountain, vUVCoord * 250).rgb;
-        }
+        vec3 color1 = texture(Forest, vUVCoord * 300.0).rgb;
+        vec3 color2 = vec3(0.9, 0.9, 0.9);
+        float minLimit = secondBiomeLimit - range; 
+        float maxLimit = secondBiomeLimit + range; 
+        float interpValue = (biomeValue - minLimit) / (maxLimit - minLimit);
+        interpValue = smoothstep(0.0, 1.0, interpValue);
+        initialColor = mix(color1, color2, interpValue);
     }
-
+    else if(biomeValue <= 3.0)
+    {
+        vec3 color1 = vec3(0.9, 0.9, 0.9);
+        vec3 color2 = texture(Mountain, vUVCoord * 300.0).rgb;
+        float minLimit = thirdBiomeLimit - range; 
+        float maxLimit = thirdBiomeLimit + range; 
+        float interpValue = (biomeValue - minLimit) / (maxLimit - minLimit);
+        interpValue = smoothstep(0.0, 1.0, interpValue);
+        initialColor = mix(color1, color2, interpValue);
+    }
+    
 //LIGHT COMPUTATION 
 	vec3 N = normalize(vNormal);
 	vec3 L = normalize(vlightDir);
