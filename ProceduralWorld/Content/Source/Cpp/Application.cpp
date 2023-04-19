@@ -38,6 +38,7 @@ std::string skyPath = "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/Procedur
 float amplitude = 3.0f;
 float frequency = 1.6f;
 int octaves = 10;
+bool toonShadingIsEnabled = false;
 HeightMap ElevationMap(MAP_RESOLUTION, MAP_RESOLUTION);
 HeightMap BiomeMap(MAP_RESOLUTION, MAP_RESOLUTION);
 HeightMap TreeMap(MAP_RESOLUTION, MAP_RESOLUTION);
@@ -135,6 +136,7 @@ int main()
     terrainShader.SetUniformInt("Lawn", terrain.terrainMaterial.Lawn);
     terrainShader.SetUniformInt("Forest", terrain.terrainMaterial.Forest);
     terrainShader.SetUniformInt("Mountain", terrain.terrainMaterial.Mountain);
+    terrainShader.SetUniformBool("toonShadingIsEnabled", false);
 
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &ModelSubLocationIndex);
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &ModelSubVertexLoc);
@@ -195,6 +197,7 @@ int main()
         terrainShader.SetUniformFloat("Kd", terrain.terrainMaterial.Kd);
         terrainShader.SetUniformFloat("shininess", terrain.terrainMaterial.shininess);
         terrainShader.SetUniformVec3("specularColor", terrain.terrainMaterial.specularColor);
+        terrainShader.SetUniformBool("toonShadingIsEnabled", toonShadingIsEnabled);
         terrain.DrawTerrain();
 
         glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &ModelSubLocationIndex);
@@ -229,6 +232,7 @@ int main()
         ImGui::SliderFloat("YLightDir", &lightDir.y, 0.0f, 1.0f);
         ImGui::SliderFloat("LightIntensity", &lightIntensity, 0.0f, 7.0f);
         ImGui::SliderFloat("Threshold tree value", &thresholdTreeValue, -3.0f, 3.0f);
+        ImGui::Checkbox("ToonShading", &toonShadingIsEnabled);
         ImGui::Text("Frame time: %fms", playerMovement.deltaTime);
         ImGui::End();
 

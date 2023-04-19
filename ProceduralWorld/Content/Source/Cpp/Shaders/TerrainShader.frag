@@ -19,10 +19,13 @@ uniform sampler2D Lawn;
 uniform sampler2D Forest;
 uniform sampler2D Mountain;
 uniform samplerCube skybox;
+uniform bool toonShadingIsEnabled;
 // Subroutine Uniform (it is conceptually similar to a C pointer function)
 subroutine uniform  light illumination;
 
 const float range = 0.3;
+const int toonLevels = 4;
+const float toonScaleFactor = 1.0 / toonLevels;
 
 
 in vec3 vNormal;
@@ -102,7 +105,11 @@ vec4 illuminationForTerrain()
         float specAngle = max(dot(H, N), 0.0);
         // shininess application to the specular component
         float specular = pow(specAngle, shininess);
-
+        if(toonShadingIsEnabled)
+        {
+            lambertian = ceil(lambertian * toonLevels) * toonScaleFactor;
+            specular = 0.0; //Remove specular component for toon shading
+        }
         // We add diffusive and specular components to the final color
         // N.B. ): in this implementation, the sum of the components can be different than 1
         color += lightIntensity * vec3( Kd * lambertian * initialColor +
@@ -138,7 +145,11 @@ vec4 illuminationForModels()
         float specAngle = max(dot(H, N), 0.0);
         // shininess application to the specular component
         float specular = pow(specAngle, shininess);
-
+        if(toonShadingIsEnabled)
+        {
+            lambertian = ceil(lambertian * toonLevels) * toonScaleFactor;
+            specular = 0.0; //Remove specular component for toon shading
+        }
         // We add diffusive and specular components to the final color
         // N.B. ): in this implementation, the sum of the components can be different than 1
         color += lightIntensity * vec3( Kd * lambertian * initialColor +
