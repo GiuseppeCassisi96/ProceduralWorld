@@ -30,7 +30,7 @@ public:
 		float Kd = 0.5f;
 		float Ks = 0.4f;
 		float Ka = 0.1f;
-		float shininess = 5000.0f;
+		float shininess = 600.0f;
 	};
 	TerrainMat terrainMaterial;
 	std::vector<TerrainVertex> vertices;

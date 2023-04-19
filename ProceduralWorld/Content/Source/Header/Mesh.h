@@ -11,6 +11,7 @@ struct Vertex
 	glm::vec3 Normals;
 	glm::vec3 Tangent;
 	glm::vec3 BiTangent;
+	glm::vec3 Color;
 
 };
 class Mesh
@@ -36,6 +37,7 @@ public:
 	std::vector<Vertex> meshVertices;
 	std::vector<unsigned int> meshIndices;
 	void DrawMesh();
+	void RecomputeMesh(std::vector<glm::mat4>& meshPositions);
 private:
 	unsigned int VBO, EBO, VAO, instanceVBO;
 	std::vector<glm::mat4> meshPositions;

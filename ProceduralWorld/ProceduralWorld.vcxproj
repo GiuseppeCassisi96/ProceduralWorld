@@ -145,6 +145,7 @@
     <ClCompile Include="Content\Source\Cpp\Movement.cpp" />
     <ClCompile Include="Content\Source\Cpp\Shader.cpp" />
     <ClCompile Include="Content\Source\Cpp\HeightMap.cpp" />
+    <ClCompile Include="Content\Source\Cpp\SkyBox.cpp" />
     <ClCompile Include="Content\Source\Cpp\Texture.cpp" />
     <ClCompile Include="Content\Source\Cpp\Tree.cpp" />
     <ClCompile Include="Content\Source\Cpp\WorldGeneration.cpp" />
@@ -165,6 +166,7 @@
     <ClInclude Include="Content\Source\Header\Model.h" />
     <ClInclude Include="Content\Source\Header\Movement.h" />
     <ClInclude Include="Content\Source\Header\Shader.h" />
+    <ClInclude Include="Content\Source\Header\SkyBox.h" />
     <ClInclude Include="Content\Source\Header\Texture.h" />
     <ClInclude Include="Content\Source\Header\Tree.h" />
     <ClInclude Include="Content\Source\Header\WorldGeneration.h" />

@@ -18,10 +18,12 @@ public:
 	//I'm using '&&' operator because I manage R-Value 
 	Model(Model&& model) = default;
 	Model& operator=(Model&& model) noexcept = default;
-	Model(const std::string& path);
+	Model(const std::string& path, std::vector<glm::mat4> modelPositions);
 	void DrawModel();
+	void RecomputeModel(std::vector<glm::mat4>& modelPositions);
 private:
 	void LoadModel(const std::string& path);
 	void ProcessNode(aiNode* node, const aiScene* scene);
 	Mesh ProcessMesh(aiMesh* mesh);
+	std::vector<glm::mat4> modelPositions;
 };

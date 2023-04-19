@@ -2,7 +2,8 @@
 #include "Model.h"
 #include <iostream>
 
-Model::Model(const std::string& path)
+Model::Model(const std::string& path, std::vector<glm::mat4> modelPositions)
+	: modelPositions(modelPositions)
 {
 	LoadModel(path);
 }
@@ -58,6 +59,8 @@ Mesh Model::ProcessMesh(aiMesh* mesh)
 		//Here I convert to assimp mesh data structure to Vertex data structure (NORMALS)
 		glm::vec3 normal{ mesh->mNormals[i].x,mesh->mNormals[i].y ,mesh->mNormals[i].z };
 		vertex.Normals = normal;
+		glm::vec3 color{ mesh->mColors[0][i].r, mesh->mColors[0][i].g, mesh->mColors[0][i].b};
+		vertex.Color = color;
 		if (mesh->mTextureCoords[0])
 		{
 			//Here I convert to assimp mesh data structure to Vertex data structure (UVCOORD)
@@ -87,6 +90,10 @@ Mesh Model::ProcessMesh(aiMesh* mesh)
 			indices.emplace_back(face.mIndices[j]);
 		}
 	}
+	if(modelPositions.size() > 1)
+	{
+		return Mesh(vertices, indices, modelPositions);
+	}
 	return Mesh(vertices, indices);
 }
 
@@ -96,5 +103,13 @@ void Model::DrawModel()
 	for (unsigned int i = 0; i < meshes.size(); i++)
 	{
 		meshes[i].DrawMesh();
+	}
+}
+
+void Model::RecomputeModel(std::vector<glm::mat4>& modelPositions)
+{
+	for(int i = 0; i < meshes.size(); i++)
+	{
+		meshes[i].RecomputeMesh(modelPositions);
 	}
 }
