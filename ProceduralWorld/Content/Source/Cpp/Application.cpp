@@ -45,9 +45,10 @@ HeightMap BiomeMap(MAP_RESOLUTION, MAP_RESOLUTION);
 HeightMap TreeMap(MAP_RESOLUTION, MAP_RESOLUTION);
 unsigned int TerrainSubLocationIndex, ModelSubLocationIndex, SkySubLocationIndex;
 unsigned int TerrainSubVertexLoc, ModelSubVertexLoc, SkySubVertexLoc;
-unsigned int NOEffectLoc, OutlineEffectLoc, GrayScaleEffectLoc;
+unsigned int NOEffectLoc, OutlineEffectLoc, GrayScaleEffectLoc, PixelEffectLoc, NightVisionEffectLoc;
 unsigned int currentEffectLoc;
 float specularFactor = 1.0f;
+float pixel = 512.0f;
 std::vector<glm::mat4> treeModels;
 //Light
 glm::vec3 lightDir = glm::vec3(0.6f, 0.3f, 0.0f);
@@ -130,12 +131,16 @@ int main()
         "OutlineEffect");
     GrayScaleEffectLoc = glGetSubroutineIndex(FBShader.GetProgram(), GL_FRAGMENT_SHADER,
         "GrayScaleEffect");
-
+    PixelEffectLoc = glGetSubroutineIndex(FBShader.GetProgram(), GL_FRAGMENT_SHADER,
+        "PixelEffect");
+    NightVisionEffectLoc = glGetSubroutineIndex(FBShader.GetProgram(), GL_FRAGMENT_SHADER,
+        "NightVisionEffect");
     FrameBuffer frame_buffer(GL_TEXTURE6);
     FBShader.UseProgram();
     FBShader.SetUniformInt("frameTexture", 6);
     FBShader.SetUniformFloat("screenWidth", WIDTH);
     FBShader.SetUniformFloat("screenHeight", HEIGHT);
+    FBShader.SetUniformFloat("pixel", pixel);
     currentEffectLoc = NOEffectLoc;
 
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &TerrainSubLocationIndex);
@@ -247,6 +252,7 @@ int main()
 
         frame_buffer.UNBindFrameBuffer();
         FBShader.UseProgram();
+        FBShader.SetUniformFloat("pixel", pixel);
         glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &currentEffectLoc);
         frame_buffer.DrawFrameBuffer();
 
@@ -261,7 +267,7 @@ int main()
         ImGui::SliderFloat("LightIntensity", &lightIntensity, 0.0f, 7.0f);
         ImGui::SliderFloat("Threshold tree value", &thresholdTreeValue, -3.0f, 3.0f);
         ImGui::Checkbox("ToonShading", &toonShadingIsEnabled);
-        if(ImGui::Button("NoEffect"))
+        if(ImGui::Button("NoPostProcessEffect"))
         {
             currentEffectLoc = NOEffectLoc;
             specularFactor = 1.0f;
@@ -276,6 +282,18 @@ int main()
             currentEffectLoc = GrayScaleEffectLoc;
             specularFactor = 0.0f;
         }
+        if (ImGui::Button("PixelEffect"))
+        {
+            currentEffectLoc = PixelEffectLoc;
+            specularFactor = 0.0f;
+        }
+        ImGui::SliderFloat("Pixels number", &pixel, 512, 2048);
+        if (ImGui::Button("NightVisionEffect"))
+        {
+            currentEffectLoc = NightVisionEffectLoc;
+            specularFactor = 0.0f;
+        }
+        
         ImGui::Text("Frame time: %fms", playerMovement.deltaTime);
         ImGui::End();
 
@@ -363,7 +381,7 @@ GLFWwindow* Setup(GLFWwindow* window)
 #endif
 
     // glfw window creation
-    window = glfwCreateWindow(WIDTH, HEIGHT, "ProceduralWorld", NULL, NULL);
+    window = glfwCreateWindow(WIDTH,HEIGHT ,"ProceduralWorld", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
