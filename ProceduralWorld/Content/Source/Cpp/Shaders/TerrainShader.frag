@@ -74,7 +74,7 @@ vec4 illuminationForTerrain()
         interpValue = smoothstep(0.0, 1.0, interpValue);
         initialColor = mix(color1, color2, interpValue);
     }
-    else if(biomeValue <= 3.0)
+    else
     {
         vec3 color1 = vec3(0.9, 0.9, 0.9);
         vec3 color2 = texture(Mountain, vUVCoord * 300.0).rgb;

@@ -78,6 +78,9 @@
     <ClCompile Include="Content\Source\Cpp\SkyBox.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
+    <ClCompile Include="Content\Source\Cpp\FrameBuffer.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Content\Source\Header\Movement.h">
@@ -137,10 +140,15 @@
     <ClInclude Include="Content\Source\Header\SkyBox.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="Content\Source\Header\FrameBuffer.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Content\Source\Cpp\Shaders\NoiseGeneration.comp" />
     <None Include="Content\Source\Cpp\Shaders\TerrainShader.frag" />
     <None Include="Content\Source\Cpp\Shaders\TerrainShader.vert" />
+    <None Include="Content\Source\Cpp\Shaders\FB.vert" />
+    <None Include="Content\Source\Cpp\Shaders\FB.frag" />
   </ItemGroup>
 </Project>

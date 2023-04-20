@@ -15,6 +15,7 @@
 #include <GLM/include/gtc/type_ptr.hpp>
 #include "Tree.h"
 #include "SkyBox.h"
+#include "FrameBuffer.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -93,6 +94,9 @@ int main()
 
     Shader terrainShader{ (shadersPath + "TerrainShader.vert").c_str(),
                       (shadersPath + "TerrainShader.frag").c_str() };
+
+    Shader FBShader{ (shadersPath + "FB.vert").c_str(),
+                      (shadersPath + "FB.frag").c_str() };
     TerrainGeneration terrain (ElevationMap);
 
 	glm::mat4 TerrainModel = glm::mat4(1.0f);
@@ -116,6 +120,10 @@ int main()
         "TreeVert");
     SkySubVertexLoc = glGetSubroutineIndex(terrainShader.GetProgram(), GL_VERTEX_SHADER,
         "SkyBoxVert");
+
+    FrameBuffer frame_buffer(GL_TEXTURE6);
+    FBShader.UseProgram();
+    FBShader.SetUniformInt("frameTexture", 6);
 
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &TerrainSubLocationIndex);
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &TerrainSubLocationIndex);
@@ -170,9 +178,10 @@ int main()
         ImGui::NewFrame();
 
         // render
+        frame_buffer.BindFrameBuffer();
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
+        glEnable(GL_DEPTH_TEST);
         if (isWireframe)
         {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -221,6 +230,10 @@ int main()
         sky.DrawSkyBox(GL_TEXTURE6);
         //set depth function back to default
         glDepthFunc(GL_LESS);
+
+        frame_buffer.UNBindFrameBuffer();
+        FBShader.UseProgram();
+        frame_buffer.DrawFrameBuffer();
 
         //Setting of whole application UI
         ImGui::Begin("ProceduralWorld control panel ");
