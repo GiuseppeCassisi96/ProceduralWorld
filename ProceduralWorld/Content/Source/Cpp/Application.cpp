@@ -45,7 +45,7 @@ HeightMap BiomeMap(MAP_RESOLUTION, MAP_RESOLUTION);
 HeightMap TreeMap(MAP_RESOLUTION, MAP_RESOLUTION);
 unsigned int TerrainSubLocationIndex, ModelSubLocationIndex, SkySubLocationIndex;
 unsigned int TerrainSubVertexLoc, ModelSubVertexLoc, SkySubVertexLoc;
-unsigned int NOEffectLoc, OutlineEffectLoc;
+unsigned int NOEffectLoc, OutlineEffectLoc, GrayScaleEffectLoc;
 unsigned int currentEffectLoc;
 float specularFactor = 1.0f;
 std::vector<glm::mat4> treeModels;
@@ -128,6 +128,8 @@ int main()
         "NOEffect");
     OutlineEffectLoc = glGetSubroutineIndex(FBShader.GetProgram(), GL_FRAGMENT_SHADER,
         "OutlineEffect");
+    GrayScaleEffectLoc = glGetSubroutineIndex(FBShader.GetProgram(), GL_FRAGMENT_SHADER,
+        "GrayScaleEffect");
 
     FrameBuffer frame_buffer(GL_TEXTURE6);
     FBShader.UseProgram();
@@ -267,6 +269,11 @@ int main()
         if (ImGui::Button("OutlineEffect"))
         {
             currentEffectLoc = OutlineEffectLoc;
+            specularFactor = 0.0f;
+        }
+        if (ImGui::Button("GrayScaleEffect"))
+        {
+            currentEffectLoc = GrayScaleEffectLoc;
             specularFactor = 0.0f;
         }
         ImGui::Text("Frame time: %fms", playerMovement.deltaTime);
