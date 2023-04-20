@@ -19,10 +19,14 @@ uniform sampler2D Lawn;
 uniform sampler2D Forest;
 uniform sampler2D Mountain;
 uniform samplerCube skybox;
+uniform bool toonShadingIsEnabled;
+uniform float specularFactor;
 // Subroutine Uniform (it is conceptually similar to a C pointer function)
 subroutine uniform  light illumination;
 
 const float range = 0.3;
+const int toonLevels = 4;
+const float toonScaleFactor = 1.0 / toonLevels;
 
 
 in vec3 vNormal;
@@ -71,7 +75,7 @@ vec4 illuminationForTerrain()
         interpValue = smoothstep(0.0, 1.0, interpValue);
         initialColor = mix(color1, color2, interpValue);
     }
-    else if(biomeValue <= 3.0)
+    else
     {
         vec3 color1 = vec3(0.9, 0.9, 0.9);
         vec3 color2 = texture(Mountain, vUVCoord * 300.0).rgb;
@@ -83,6 +87,8 @@ vec4 illuminationForTerrain()
     }
     
 //LIGHT COMPUTATION 
+    float specAngle = 0.0;
+    float specular = 0.0;
 	vec3 N = normalize(vNormal);
 	vec3 L = normalize(vlightDir);
 	// ambient component can be calculated at the beginning
@@ -97,12 +103,18 @@ vec4 illuminationForTerrain()
 
         // in the Blinn-Phong model we do not use the reflection vector, but the half vector
         vec3 H = normalize(L + V);
-
-        // we use H to calculate the specular component
-        float specAngle = max(dot(H, N), 0.0);
-        // shininess application to the specular component
-        float specular = pow(specAngle, shininess);
-
+        if(toonShadingIsEnabled)
+        {
+            lambertian = ceil(lambertian * toonLevels) * toonScaleFactor;
+        }
+        else
+        {
+            // we use H to calculate the specular component
+            specAngle = max(dot(H, N), 0.0);
+            // shininess application to the specular component
+            specular = pow(specAngle, shininess);
+            specular *= specularFactor;
+        }
         // We add diffusive and specular components to the final color
         // N.B. ): in this implementation, the sum of the components can be different than 1
         color += lightIntensity * vec3( Kd * lambertian * initialColor +
@@ -119,6 +131,8 @@ vec4 illuminationForModels()
     vec3 initialColor = vColor;
    
 //LIGHT COMPUTATION 
+    float specAngle = 0.0;
+    float specular = 0.0;
 	vec3 N = normalize(vNormal);
 	vec3 L = normalize(vlightDir);
 	// ambient component can be calculated at the beginning
@@ -133,12 +147,18 @@ vec4 illuminationForModels()
 
         // in the Blinn-Phong model we do not use the reflection vector, but the half vector
         vec3 H = normalize(L + V);
-
-        // we use H to calculate the specular component
-        float specAngle = max(dot(H, N), 0.0);
-        // shininess application to the specular component
-        float specular = pow(specAngle, shininess);
-
+        if(toonShadingIsEnabled)
+        {
+            lambertian = ceil(lambertian * toonLevels) * toonScaleFactor;
+        }
+        else
+        {
+            // we use H to calculate the specular component
+            specAngle = max(dot(H, N), 0.0);
+            // shininess application to the specular component
+            specular = pow(specAngle, shininess);
+            specular *= specularFactor;
+        }
         // We add diffusive and specular components to the final color
         // N.B. ): in this implementation, the sum of the components can be different than 1
         color += lightIntensity * vec3( Kd * lambertian * initialColor +

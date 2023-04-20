@@ -129,6 +129,12 @@ void Shader::SetUniformVec3(const char* uniformParamName, const glm::vec3& value
 	glUniform3fv(uniformParamLoc, 1, glm::value_ptr(value));
 }
 
+void Shader::SetUniformBool(const char* uniformParamName, const bool value) const
+{
+	const int uniformParamLoc = glGetUniformLocation(program, uniformParamName);
+	glUniform1i(uniformParamLoc, value);
+}
+
 void Shader::CompileShader(const char* shaderName, unsigned int& shaderObj,
                            unsigned int shaderType)
 {

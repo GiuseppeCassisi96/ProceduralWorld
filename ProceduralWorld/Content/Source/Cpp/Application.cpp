@@ -15,6 +15,7 @@
 #include <GLM/include/gtc/type_ptr.hpp>
 #include "Tree.h"
 #include "SkyBox.h"
+#include "FrameBuffer.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -38,11 +39,16 @@ std::string skyPath = "C:/UNIMI/ProceduralWorldProgetto/ProceduralWorld/Procedur
 float amplitude = 3.0f;
 float frequency = 1.6f;
 int octaves = 10;
+bool toonShadingIsEnabled = false;
 HeightMap ElevationMap(MAP_RESOLUTION, MAP_RESOLUTION);
 HeightMap BiomeMap(MAP_RESOLUTION, MAP_RESOLUTION);
 HeightMap TreeMap(MAP_RESOLUTION, MAP_RESOLUTION);
 unsigned int TerrainSubLocationIndex, ModelSubLocationIndex, SkySubLocationIndex;
 unsigned int TerrainSubVertexLoc, ModelSubVertexLoc, SkySubVertexLoc;
+unsigned int NOEffectLoc, OutlineEffectLoc, GrayScaleEffectLoc, PixelEffectLoc, NightVisionEffectLoc;
+unsigned int currentEffectLoc;
+float specularFactor = 1.0f;
+float pixel = 512.0f;
 std::vector<glm::mat4> treeModels;
 //Light
 glm::vec3 lightDir = glm::vec3(0.6f, 0.3f, 0.0f);
@@ -92,6 +98,9 @@ int main()
 
     Shader terrainShader{ (shadersPath + "TerrainShader.vert").c_str(),
                       (shadersPath + "TerrainShader.frag").c_str() };
+
+    Shader FBShader{ (shadersPath + "FB.vert").c_str(),
+                      (shadersPath + "FB.frag").c_str() };
     TerrainGeneration terrain (ElevationMap);
 
 	glm::mat4 TerrainModel = glm::mat4(1.0f);
@@ -116,6 +125,24 @@ int main()
     SkySubVertexLoc = glGetSubroutineIndex(terrainShader.GetProgram(), GL_VERTEX_SHADER,
         "SkyBoxVert");
 
+    NOEffectLoc = glGetSubroutineIndex(FBShader.GetProgram(), GL_FRAGMENT_SHADER,
+        "NOEffect");
+    OutlineEffectLoc = glGetSubroutineIndex(FBShader.GetProgram(), GL_FRAGMENT_SHADER,
+        "OutlineEffect");
+    GrayScaleEffectLoc = glGetSubroutineIndex(FBShader.GetProgram(), GL_FRAGMENT_SHADER,
+        "GrayScaleEffect");
+    PixelEffectLoc = glGetSubroutineIndex(FBShader.GetProgram(), GL_FRAGMENT_SHADER,
+        "PixelEffect");
+    NightVisionEffectLoc = glGetSubroutineIndex(FBShader.GetProgram(), GL_FRAGMENT_SHADER,
+        "NightVisionEffect");
+    FrameBuffer frame_buffer(GL_TEXTURE6);
+    FBShader.UseProgram();
+    FBShader.SetUniformInt("frameTexture", 6);
+    FBShader.SetUniformFloat("screenWidth", WIDTH);
+    FBShader.SetUniformFloat("screenHeight", HEIGHT);
+    FBShader.SetUniformFloat("pixel", pixel);
+    currentEffectLoc = NOEffectLoc;
+
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &TerrainSubLocationIndex);
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &TerrainSubLocationIndex);
 
@@ -135,6 +162,7 @@ int main()
     terrainShader.SetUniformInt("Lawn", terrain.terrainMaterial.Lawn);
     terrainShader.SetUniformInt("Forest", terrain.terrainMaterial.Forest);
     terrainShader.SetUniformInt("Mountain", terrain.terrainMaterial.Mountain);
+    terrainShader.SetUniformBool("toonShadingIsEnabled", false);
 
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &ModelSubLocationIndex);
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &ModelSubVertexLoc);
@@ -168,9 +196,10 @@ int main()
         ImGui::NewFrame();
 
         // render
+        frame_buffer.BindFrameBuffer();
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
+        glEnable(GL_DEPTH_TEST);
         if (isWireframe)
         {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -194,7 +223,9 @@ int main()
         terrainShader.SetUniformFloat("Ks", terrain.terrainMaterial.Ks);
         terrainShader.SetUniformFloat("Kd", terrain.terrainMaterial.Kd);
         terrainShader.SetUniformFloat("shininess", terrain.terrainMaterial.shininess);
+        terrainShader.SetUniformFloat("specularFactor", specularFactor);
         terrainShader.SetUniformVec3("specularColor", terrain.terrainMaterial.specularColor);
+        terrainShader.SetUniformBool("toonShadingIsEnabled", toonShadingIsEnabled);
         terrain.DrawTerrain();
 
         glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &ModelSubLocationIndex);
@@ -219,6 +250,12 @@ int main()
         //set depth function back to default
         glDepthFunc(GL_LESS);
 
+        frame_buffer.UNBindFrameBuffer();
+        FBShader.UseProgram();
+        FBShader.SetUniformFloat("pixel", pixel);
+        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &currentEffectLoc);
+        frame_buffer.DrawFrameBuffer();
+
         //Setting of whole application UI
         ImGui::Begin("ProceduralWorld control panel ");
         ImGui::Text("Here you can modify all terrain generation parameters");
@@ -229,6 +266,34 @@ int main()
         ImGui::SliderFloat("YLightDir", &lightDir.y, 0.0f, 1.0f);
         ImGui::SliderFloat("LightIntensity", &lightIntensity, 0.0f, 7.0f);
         ImGui::SliderFloat("Threshold tree value", &thresholdTreeValue, -3.0f, 3.0f);
+        ImGui::Checkbox("ToonShading", &toonShadingIsEnabled);
+        if(ImGui::Button("NoPostProcessEffect"))
+        {
+            currentEffectLoc = NOEffectLoc;
+            specularFactor = 1.0f;
+        }
+        if (ImGui::Button("OutlineEffect"))
+        {
+            currentEffectLoc = OutlineEffectLoc;
+            specularFactor = 0.0f;
+        }
+        if (ImGui::Button("GrayScaleEffect"))
+        {
+            currentEffectLoc = GrayScaleEffectLoc;
+            specularFactor = 0.0f;
+        }
+        if (ImGui::Button("PixelEffect"))
+        {
+            currentEffectLoc = PixelEffectLoc;
+            specularFactor = 0.0f;
+        }
+        ImGui::SliderFloat("Pixels number", &pixel, 512, 2048);
+        if (ImGui::Button("NightVisionEffect"))
+        {
+            currentEffectLoc = NightVisionEffectLoc;
+            specularFactor = 0.0f;
+        }
+        
         ImGui::Text("Frame time: %fms", playerMovement.deltaTime);
         ImGui::End();
 
@@ -316,7 +381,7 @@ GLFWwindow* Setup(GLFWwindow* window)
 #endif
 
     // glfw window creation
-    window = glfwCreateWindow(WIDTH, HEIGHT, "ProceduralWorld", NULL, NULL);
+    window = glfwCreateWindow(WIDTH,HEIGHT ,"ProceduralWorld", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
