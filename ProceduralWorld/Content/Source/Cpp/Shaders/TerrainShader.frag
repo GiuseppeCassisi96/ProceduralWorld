@@ -20,6 +20,7 @@ uniform sampler2D Forest;
 uniform sampler2D Mountain;
 uniform samplerCube skybox;
 uniform bool toonShadingIsEnabled;
+uniform float specularFactor;
 // Subroutine Uniform (it is conceptually similar to a C pointer function)
 subroutine uniform  light illumination;
 
@@ -86,6 +87,8 @@ vec4 illuminationForTerrain()
     }
     
 //LIGHT COMPUTATION 
+    float specAngle = 0.0;
+    float specular = 0.0;
 	vec3 N = normalize(vNormal);
 	vec3 L = normalize(vlightDir);
 	// ambient component can be calculated at the beginning
@@ -100,15 +103,17 @@ vec4 illuminationForTerrain()
 
         // in the Blinn-Phong model we do not use the reflection vector, but the half vector
         vec3 H = normalize(L + V);
-
-        // we use H to calculate the specular component
-        float specAngle = max(dot(H, N), 0.0);
-        // shininess application to the specular component
-        float specular = pow(specAngle, shininess);
         if(toonShadingIsEnabled)
         {
             lambertian = ceil(lambertian * toonLevels) * toonScaleFactor;
-            specular = 0.0; //Remove specular component for toon shading
+        }
+        else
+        {
+            // we use H to calculate the specular component
+            specAngle = max(dot(H, N), 0.0);
+            // shininess application to the specular component
+            specular = pow(specAngle, shininess);
+            specular *= specularFactor;
         }
         // We add diffusive and specular components to the final color
         // N.B. ): in this implementation, the sum of the components can be different than 1
@@ -126,6 +131,8 @@ vec4 illuminationForModels()
     vec3 initialColor = vColor;
    
 //LIGHT COMPUTATION 
+    float specAngle = 0.0;
+    float specular = 0.0;
 	vec3 N = normalize(vNormal);
 	vec3 L = normalize(vlightDir);
 	// ambient component can be calculated at the beginning
@@ -140,15 +147,17 @@ vec4 illuminationForModels()
 
         // in the Blinn-Phong model we do not use the reflection vector, but the half vector
         vec3 H = normalize(L + V);
-
-        // we use H to calculate the specular component
-        float specAngle = max(dot(H, N), 0.0);
-        // shininess application to the specular component
-        float specular = pow(specAngle, shininess);
         if(toonShadingIsEnabled)
         {
             lambertian = ceil(lambertian * toonLevels) * toonScaleFactor;
-            specular = 0.0; //Remove specular component for toon shading
+        }
+        else
+        {
+            // we use H to calculate the specular component
+            specAngle = max(dot(H, N), 0.0);
+            // shininess application to the specular component
+            specular = pow(specAngle, shininess);
+            specular *= specularFactor;
         }
         // We add diffusive and specular components to the final color
         // N.B. ): in this implementation, the sum of the components can be different than 1
