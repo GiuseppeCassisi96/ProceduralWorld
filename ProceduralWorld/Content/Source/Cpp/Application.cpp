@@ -45,6 +45,9 @@ HeightMap BiomeMap(MAP_RESOLUTION, MAP_RESOLUTION);
 HeightMap TreeMap(MAP_RESOLUTION, MAP_RESOLUTION);
 unsigned int TerrainSubLocationIndex, ModelSubLocationIndex, SkySubLocationIndex;
 unsigned int TerrainSubVertexLoc, ModelSubVertexLoc, SkySubVertexLoc;
+unsigned int NOEffectLoc, OutlineEffectLoc;
+unsigned int currentEffectLoc;
+float specularFactor = 1.0f;
 std::vector<glm::mat4> treeModels;
 //Light
 glm::vec3 lightDir = glm::vec3(0.6f, 0.3f, 0.0f);
@@ -121,9 +124,17 @@ int main()
     SkySubVertexLoc = glGetSubroutineIndex(terrainShader.GetProgram(), GL_VERTEX_SHADER,
         "SkyBoxVert");
 
+    NOEffectLoc = glGetSubroutineIndex(FBShader.GetProgram(), GL_FRAGMENT_SHADER,
+        "NOEffect");
+    OutlineEffectLoc = glGetSubroutineIndex(FBShader.GetProgram(), GL_FRAGMENT_SHADER,
+        "OutlineEffect");
+
     FrameBuffer frame_buffer(GL_TEXTURE6);
     FBShader.UseProgram();
     FBShader.SetUniformInt("frameTexture", 6);
+    FBShader.SetUniformFloat("screenWidth", WIDTH);
+    FBShader.SetUniformFloat("screenHeight", HEIGHT);
+    currentEffectLoc = NOEffectLoc;
 
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &TerrainSubLocationIndex);
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &TerrainSubLocationIndex);
@@ -205,6 +216,7 @@ int main()
         terrainShader.SetUniformFloat("Ks", terrain.terrainMaterial.Ks);
         terrainShader.SetUniformFloat("Kd", terrain.terrainMaterial.Kd);
         terrainShader.SetUniformFloat("shininess", terrain.terrainMaterial.shininess);
+        terrainShader.SetUniformFloat("specularFactor", specularFactor);
         terrainShader.SetUniformVec3("specularColor", terrain.terrainMaterial.specularColor);
         terrainShader.SetUniformBool("toonShadingIsEnabled", toonShadingIsEnabled);
         terrain.DrawTerrain();
@@ -233,6 +245,7 @@ int main()
 
         frame_buffer.UNBindFrameBuffer();
         FBShader.UseProgram();
+        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &currentEffectLoc);
         frame_buffer.DrawFrameBuffer();
 
         //Setting of whole application UI
@@ -246,6 +259,16 @@ int main()
         ImGui::SliderFloat("LightIntensity", &lightIntensity, 0.0f, 7.0f);
         ImGui::SliderFloat("Threshold tree value", &thresholdTreeValue, -3.0f, 3.0f);
         ImGui::Checkbox("ToonShading", &toonShadingIsEnabled);
+        if(ImGui::Button("NoEffect"))
+        {
+            currentEffectLoc = NOEffectLoc;
+            specularFactor = 1.0f;
+        }
+        if (ImGui::Button("OutlineEffect"))
+        {
+            currentEffectLoc = OutlineEffectLoc;
+            specularFactor = 0.0f;
+        }
         ImGui::Text("Frame time: %fms", playerMovement.deltaTime);
         ImGui::End();
 
