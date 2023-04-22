@@ -31,9 +31,9 @@ vec4 OutlineEffect()
 
     float kernel[9] = float[]
     (
-	     -1, -1, -1,
-        -1,  8.2, -1,
-        -1, -1, -1
+	    -1, -1,  -1,
+        -1,  8.2,-1,
+        -1, -1,  -1
     );
 	vec3 sampleTex[9];
     for(int i = 0; i < 9; i++)
@@ -81,7 +81,7 @@ vec4 NightVisionEffect()
 
     float kernel[9] = float[]
     (
-	     -1, -1, -1,
+	    -1, -1, -1,
         -1,  9, -1,
         -1, -1, -1
     );

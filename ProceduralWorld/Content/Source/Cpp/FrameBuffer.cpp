@@ -18,7 +18,7 @@ FrameBuffer::FrameBuffer(GLenum textureUnit)
 	glGenTextures(1, &frameBufferTexture);
 	glActiveTexture(textureUnit);
 	glBindTexture(GL_TEXTURE_2D, frameBufferTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,WIDTH, HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<GLsizei>(WIDTH), static_cast<GLsizei>(HEIGHT), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -32,7 +32,7 @@ FrameBuffer::FrameBuffer(GLenum textureUnit)
 	glGenRenderbuffers(1, &RBO);
 	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
 	//I configure the renderbuffer storage to store both depth buffer and stencil buffer
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, WIDTH, HEIGHT);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, static_cast<GLsizei>(WIDTH), static_cast<GLsizei>(HEIGHT));
 	//Now I attach the stencil buffer and depth buffer to the framebuffer
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
 
@@ -60,19 +60,29 @@ void FrameBuffer::UNBindFrameBuffer()
 
 void FrameBuffer::DrawFrameBuffer()
 {
+	//I draw the framebuffer rectangle
 	glBindVertexArray(rectVAO);
 	glDisable(GL_DEPTH_TEST); // prevents framebuffer rectangle from being discarded
 	glBindTexture(GL_TEXTURE_2D, frameBufferTexture);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
+void FrameBuffer::DeleteBuffers()
+{
+	glDeleteBuffers(1, &rectVBO);
+	glDeleteVertexArrays(1, &rectVAO);
+	glDeleteFramebuffers(1, &FBO);
+	glDeleteRenderbuffers(1, &RBO);
+}
+
 void FrameBuffer::SetupRectangleBuffers()
 {
-	// Prepare framebuffer rectangle VBO and VAO
+	//Prepare framebuffer rectangle VBO and VAO
 	glGenVertexArrays(1, &rectVAO);
 	glGenBuffers(1, &rectVBO);
 	glBindVertexArray(rectVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, rectVBO);
+	//I fill the buffer data with FBORectangleVertices
 	glBufferData(GL_ARRAY_BUFFER, sizeof(FBORectangleVertices), &FBORectangleVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);

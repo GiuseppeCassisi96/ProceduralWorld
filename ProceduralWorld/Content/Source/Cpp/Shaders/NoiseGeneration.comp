@@ -1,7 +1,7 @@
 #version 460 core
-
+//Here I specify the work group size. The warp size is limited, Nvidia uses a warp of 32 Threads 
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
-layout(r32f, binding = 0) uniform image2D heightMap;
+layout(r32f, binding = 0) uniform image2D heightMap;//image2D correspond to the GL_TEXTURE_2D
 
 //VARS
 layout(location = 0) uniform float amplitude;
@@ -83,8 +83,6 @@ float snoise(vec3 v)
   vec4 b0 = vec4( x.xy, y.xy );
   vec4 b1 = vec4( x.zw, y.zw );
 
-  //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;
-  //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;
   vec4 s0 = floor(b0)*2.0 + 1.0;
   vec4 s1 = floor(b1)*2.0 + 1.0;
   vec4 sh = -step(h, vec4(0.0));
@@ -131,14 +129,20 @@ float snoise(vec3 v)
 
 void main() {
 
-    ivec2 texelCoord = ivec2(gl_GlobalInvocationID.xy);
+    /*I pick the current pixel coordinate. gl_GlobalInvocationID indicate the invocation ID
+      in all works group*/
+    ivec2 pixelCoord = ivec2(gl_GlobalInvocationID.xy);
 	
     //Range values between [0,1]
-    float U = float(texelCoord.x)/(gl_NumWorkGroups.x);
-    float V = float(texelCoord.y)/(gl_NumWorkGroups.y);
-
+    float U = float(pixelCoord.x)/(gl_NumWorkGroups.x);
+    float V = float(pixelCoord.y)/(gl_NumWorkGroups.y);
+    //I compute the height value using fractal noise
     float height = fractalNoise(vec2(U,V), seed);
+    vec4 valueToStore = vec4( height, 0.0, 0.0, 0.0 );
     
-    // store new value in image
-    imageStore( heightMap, texelCoord, vec4( height, 0.0, 0.0, 0.0 ) );
+    /* store new value in image where:
+    --heightMap: Is the image2D I will write the data
+    --pixelCoord: Is the integer pixel cordinate where I will write the new height value 
+    */
+    imageStore( heightMap, pixelCoord, valueToStore);
 }

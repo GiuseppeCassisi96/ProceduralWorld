@@ -15,9 +15,11 @@ Movement::Movement(glm::vec3 initialPos, glm::mat4& viewMatrix) : position{ init
 
 void Movement::Move(GLFWwindow* window, glm::mat4& viewMatrix)
 {
+	//I compute the delta time in order to do a moment based on frame time
 	currentTime = static_cast<float>(glfwGetTime());
 	deltaTime = currentTime - lastTime;
 	lastTime = currentTime;
+
 	if (glfwGetKey(window, GLFW_KEY_W))
 	{
 		position -= forwardAxe * (PLAYER_SPEED * deltaTime);
@@ -28,11 +30,11 @@ void Movement::Move(GLFWwindow* window, glm::mat4& viewMatrix)
 	}
 	if (glfwGetKey(window, GLFW_KEY_D))
 	{
-		position += rightAxe * (PLAYER_SPEED * deltaTime);
+		position -= rightAxe * (PLAYER_SPEED * deltaTime);
 	}
 	if (glfwGetKey(window, GLFW_KEY_A))
 	{
-		position -= rightAxe * (PLAYER_SPEED * deltaTime);
+		position += rightAxe * (PLAYER_SPEED * deltaTime);
 	}
 	if (glfwGetKey(window, GLFW_KEY_E))
 	{
@@ -42,7 +44,8 @@ void Movement::Move(GLFWwindow* window, glm::mat4& viewMatrix)
 	{
 		position -= upAxe * (PLAYER_SPEED * deltaTime);
 	}
-	rightAxe = glm::normalize(glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), forwardAxe));
+	//Recompute the rightAxe, upAxe and view matrix
+	rightAxe = glm::normalize(glm::cross(forwardAxe, glm::vec3(0.0f, 1.0f, 0.0f)));
 	viewMatrix = glm::lookAt(position, position + (-forwardAxe), glm::vec3(0.0f, 1.0f, 0.0f));
 
 }
@@ -79,5 +82,6 @@ void Movement::Rotate(double xpos, double ypos)
 	direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
 	direction.y = sin(glm::radians(pitch));
 	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	//Recompute the fowardAxe
 	forwardAxe = glm::normalize(direction);
 }

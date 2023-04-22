@@ -44,7 +44,7 @@ void Model::ProcessNode(aiNode* node, const aiScene* scene)
 	}
 }
 
-//Here I convert the data structure of assimp mesh to a data structure defined in the mesh class (aka Vertex)
+
 Mesh Model::ProcessMesh(aiMesh* mesh)
 {
 	std::vector<Vertex> vertices;

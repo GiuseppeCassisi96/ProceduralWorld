@@ -12,10 +12,6 @@ Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices,
 	SetupMesh();
 }
 
-/*Here I change ownership from an instance to another(Move constructor)
- * In this case I construct a new instance by moving the resources of one
- * instance (fully) to another instance (empty)
- */
 Mesh::Mesh(Mesh&& mesh) noexcept :
 	meshVertices{ std::move(mesh.meshVertices) }, meshIndices{ std::move(mesh.meshIndices) },
 	VAO{ mesh.VAO }, VBO{ mesh.VBO }, EBO{ mesh.EBO }, instanceVBO{ mesh.instanceVBO },
@@ -89,6 +85,9 @@ void Mesh::SetupMesh()
 	glEnableVertexAttribArray(5);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+	/*If the 'meshPositions' vector is not empty I define my 'instanceVBO' that contains a model
+	 *matrix used for trees positioning*/
+
 	if (!meshPositions.empty())
 	{
 		glGenBuffers(1, &instanceVBO);
@@ -107,6 +106,8 @@ void Mesh::SetupMesh()
 		glVertexAttribPointer(9, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
 		glEnableVertexAttribArray(9);
 
+		/*Here I plug-in these 4 attributes in one instance. So I use these 4 attributes non per vertex
+		 *but per instance, one instance at the time. These attributes will be used for the whole instance*/
 		glVertexAttribDivisor(6, 1);
 		glVertexAttribDivisor(7, 1);
 		glVertexAttribDivisor(8, 1);
@@ -140,6 +141,7 @@ void Mesh::RecomputeMesh(std::vector<glm::mat4>& meshPositions)
 	this->meshPositions = meshPositions;
 	if(meshPositions.size() != 0)
 	{
+		//Here I update the buffer with new meshPositions data
 		glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
 		glBufferData(GL_ARRAY_BUFFER, meshPositions.size() * sizeof(glm::mat4),
 			meshPositions.data(), GL_DYNAMIC_DRAW);

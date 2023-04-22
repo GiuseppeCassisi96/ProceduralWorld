@@ -57,7 +57,11 @@ public:
 	 * \param value the value that I want set to the uniform var
 	 */
 	void SetUniformVec3(const char* uniformParamName, const glm::vec3& value) const;
-
+	/**
+	 * \brief Sets an uniform var with name 'uniformParamName' to value 'value'.
+	 * \param uniformParamName the name of the uniform var
+	 * \param value the value that I want set to the uniform var
+	 */
 	void SetUniformBool(const char* uniformParamName, const bool value) const;
 
 	inline unsigned int GetProgram()
@@ -67,11 +71,16 @@ public:
 private:
 	/**
 	 * \brief Compile the shader code. If the compilation fail print a message
+	 * \param shaderCode The code of shader that I want compile
+	 * \param shaderType Indicates, for example, if it is a fragment shader or a vertex shader  
 	 */
+	
 	void CompileShader(const char* shaderCode, unsigned int& shaderObj,
 		unsigned int shaderType);
+	//The program where the shaders obj will be attached 
 	unsigned int program;
 	unsigned int vertexObj, fragmentObj, computeObj;
 	std::stringstream vertexStream, fragmentStream, computeStream;
+	//The code of shader
 	std::string vertexShaderCode, fragmentShaderCode, computeShaderCode;
 };

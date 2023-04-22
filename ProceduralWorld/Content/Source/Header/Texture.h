@@ -9,11 +9,22 @@ class Texture
 {
 public:
 	/**
-	 * \brief Create an empty texture
+	 * \brief Creates an empty texture
+	 * \param textureUnit Is the texture unit associated with my texture
+	 * \param textureWidth The width of the texture (X-Resolution)
+	 * \param textureHeight The height of the texture (Y-Resolution)
 	 */
-	Texture(GLenum textureEnum, int textureWidth, int textureHeight);
-	//Texture file 
-	Texture(const char* fileName, GLenum textureEnum);
+	Texture(GLenum textureUnit, int textureWidth, int textureHeight);
+	/**
+	 * \brief Loads a texture from a file
+	 * \param fileName File path
+	 * \param textureUnit Is the texture unit associated with my texture
+	 */
+	Texture(const char* fileName, GLenum textureUnit);
+	/**
+	 * \brief Get values from a texture and store them in fData
+	 * \param fData Is a vector of float that will contains my texture data
+	 */
 	void GetValuesFromTexture(std::vector<float>& fData);
 	void BindTexture(GLenum textureNum);
 	unsigned int textureID;

@@ -42,6 +42,7 @@ void TerrainGeneration::ComputeMesh()
                 fi / fMeshResolution , //U
                 fj / fMeshResolution //V
             );
+            //Initially the normal is set to a zero vector
             vertex.Normal = glm::vec3(0.0f);
             vertices.push_back(vertex);
         }
@@ -100,6 +101,7 @@ void TerrainGeneration::SetupBuffers()
 
 void TerrainGeneration::ComputeNormals()
 {
+
     for(int i = 0; i < MAP_RESOLUTION - 1; i++)
     {
 	    for(int j = 0; j < MAP_RESOLUTION - 1; j++)
@@ -110,6 +112,7 @@ void TerrainGeneration::ComputeNormals()
             vertices[index].Normal = glm::normalize(glm::cross(firstEdge, secondEdge));
 	    }
     }
+    //I compute the normals of last column 
     for(int i = 0; i < MAP_RESOLUTION - 1; i++)
     {
         const int index = i * MAP_RESOLUTION + (MAP_RESOLUTION - 1);
@@ -117,7 +120,7 @@ void TerrainGeneration::ComputeNormals()
         glm::vec3 secondEdge = vertices[index + MAP_RESOLUTION].Position - vertices[index].Position;
         vertices[index].Normal = glm::normalize(glm::cross(secondEdge, firstEdge));
     }
-
+    //I compute the normals of last row 
     for (int j = 0; j < MAP_RESOLUTION - 1; j++)
     {
         const int index = (MAP_RESOLUTION - 1) * MAP_RESOLUTION + j;
@@ -156,6 +159,13 @@ void TerrainGeneration::ReComputeMesh()
     ComputeNormals();
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(TerrainVertex), vertices.data(), GL_DYNAMIC_DRAW);
+}
+
+void TerrainGeneration::DeleteBuffers()
+{
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
+    glDeleteVertexArrays(1, &VAO);
 }
 
 
