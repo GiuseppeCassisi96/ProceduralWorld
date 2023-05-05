@@ -66,8 +66,12 @@ vec4 TreeVert()
 subroutine(VertexComp)
 vec4 SkyBoxVert()
 {
+	/*I set the incoming local position vector as the outcoming texture coordinate for (interpolated) 
+	use in the fragment shader. The fragment shader then takes these as input to sample a samplerCube*/
 	skyVUVCoord = aPos;
 	vec4 pos = proj * view * vec4(aPos, 1.0);
+	/*when the perspective division is applied its z component translates to w / w = 1.0.
+	The perspective division is performed after the vertex shader has run*/
 	return pos.xyww;
 }
 void main()

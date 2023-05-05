@@ -24,12 +24,12 @@ uniform bool toonShadingIsEnabled;
 subroutine uniform  light illumination;
 
 const float boundaryLineWidth = 0.3;
-//Number of transitions betwueen color levels.
+//Number of transitions between color levels.
 const int toonLevels = 4;
 //Reciprocal of toonLevels  
 const float toonScaleFactor = 1.0 / toonLevels;
 /* The standard lambertian factor is calcolated using the cosine function and provides value
-between 0 and 1. I'm going to replace the cosine wave with several stairs, where every stairs 
+between 0 and 1. I'm going to replace the cosine wave with several stairs, where every stair 
 is the size of this reciprocal 
 
 |      --|

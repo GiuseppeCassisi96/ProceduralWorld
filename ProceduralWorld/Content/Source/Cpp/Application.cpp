@@ -39,7 +39,7 @@ void MouseInputCallback(GLFWwindow* window, double xpos, double ypos);
  * \param TreeMapTex Texture of TreeMap
  * \param TerrainData The data of world terrain
  */
-void RecomputeHeightMap(Shader& NoiseShader, Texture& ElevationMapTex, Texture& BiomeMapTex, Texture& TreeMapTex, TerrainGeneration& TerrainData);
+void RecomputeHeightMap(Shader& NoiseShader, Texture& ElevationMapTex, Texture& BiomeMapTex, Texture& TreeMapTex, WorldGeneration& TerrainData);
 //Initial setup
 GLFWwindow* Setup(GLFWwindow* window);
 /**
@@ -52,7 +52,7 @@ GLFWwindow* Setup(GLFWwindow* window);
  * \param thresholdTreeV A float value used to decide if the tree must be placed or not.
  * It is compared with heights value of the TreeMap
  */
-void SetupTreePositions(TerrainGeneration& terrainData, int numberOfIterations, HeightMap& NoiseTreeMap, float thresholdTreeV);
+void SetupTreePositions(WorldGeneration& terrainData, int numberOfIterations, HeightMap& NoiseTreeMap, float thresholdTreeV);
 
 //HeightMaps
 HeightMap ElevationMap(MAP_RESOLUTION, MAP_RESOLUTION);
@@ -158,7 +158,7 @@ int main()
                       (shadersPath + "FB.frag").c_str() };
     /*I create the world terrain where the height of each vertex is based on the height value of
      *the ElevationMap*/
-    TerrainGeneration terrain (ElevationMap);
+    WorldGeneration terrain (ElevationMap);
 
 	glm::mat4 TerrainModel = glm::mat4(1.0f);
     glm::mat3 TerrainNormalMatrix = glm::mat3(1.0f);
@@ -264,7 +264,6 @@ int main()
         frame_buffer.BindFrameBuffer();
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glEnable(GL_DEPTH_TEST);
 
         //Terrain rendering
         worldShader.UseProgram();
@@ -453,7 +452,7 @@ GLFWwindow* Setup(GLFWwindow* window)
 #endif
 
     // glfw window creation
-    window = glfwCreateWindow(static_cast<int>(WIDTH), static_cast<int>(HEIGHT) ,"ProceduralWorld", glfwGetPrimaryMonitor(), NULL);
+    window = glfwCreateWindow(static_cast<int>(WIDTH), static_cast<int>(HEIGHT) ,"ProceduralWorld", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -487,7 +486,7 @@ void MouseInputCallback(GLFWwindow* window, double xpos, double ypos)
     if(!isMouseVisible)
 		playerMovement.Rotate(xpos, ypos);
 }
-void RecomputeHeightMap(Shader& NoiseShader, Texture& ElevationMapTex, Texture& BiomeMapTex, Texture& TreeMapTex, TerrainGeneration& TerrainData)
+void RecomputeHeightMap(Shader& NoiseShader, Texture& ElevationMapTex, Texture& BiomeMapTex, Texture& TreeMapTex, WorldGeneration& TerrainData)
 {
     NoiseShader.UseProgram();
     NoiseShader.SetUniformFloat("amplitude", amplitude);
@@ -515,7 +514,7 @@ void RecomputeHeightMap(Shader& NoiseShader, Texture& ElevationMapTex, Texture& 
     NoiseShader.DispatchCompute();
     TreeMapTex.GetValuesFromTexture(TreeMap.GetData());
 }
-void SetupTreePositions(TerrainGeneration& terrainData, int numberOfIterations, HeightMap& NoiseTreeMap, float thresholdTreeV)
+void SetupTreePositions(WorldGeneration& terrainData, int numberOfIterations, HeightMap& NoiseTreeMap, float thresholdTreeV)
 {
     int count = 0;
     while (count < numberOfIterations)

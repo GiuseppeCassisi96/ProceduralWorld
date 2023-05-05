@@ -12,10 +12,10 @@ struct TerrainVertex
 	glm::vec2 UVCoords;
 	glm::vec3 Normal;
 };
-class TerrainGeneration
+class WorldGeneration
 {
 public:
-	TerrainGeneration(HeightMap& ElevationMap);
+	WorldGeneration(HeightMap& ElevationMap);
 	void DrawTerrain();
 	/**
 	 * \brief Recompute the vertices positions and normals

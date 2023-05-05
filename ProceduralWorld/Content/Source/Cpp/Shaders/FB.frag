@@ -22,13 +22,17 @@ vec4 NOEffect()
 subroutine(PostProcessingEffect)
 vec4 OutlineEffect()
 {
+    //Here I define an array of offset to sample the texture values around the current texel coordinate
     vec2 offsets[9] = vec2[]
     (
 	    vec2(-offsetX,  offsetY), vec2( 0.0f,    offsetY), vec2( offsetX,  offsetY),
         vec2(-offsetX,  0.0f),    vec2( 0.0f,    0.0f),    vec2( offsetX,  0.0f),
         vec2(-offsetX, -offsetY), vec2( 0.0f,   -offsetY), vec2( offsetX, -offsetY) 
     );
-
+    
+    /*Here I define a kernerl. A kernel (or convolution matrix) is a small matrix-like array 
+    of values centered on the current pixel that multiplies surrounding pixel values by its 
+    kernel values and adds them all together to form a single value.*/
     float kernel[9] = float[]
     (
 	    -1, -1,  -1,
@@ -36,14 +40,17 @@ vec4 OutlineEffect()
         -1, -1,  -1
     );
 	vec3 sampleTex[9];
+    //Here I sample the texture values (It is colour) using my offsets
     for(int i = 0; i < 9; i++)
     {
         sampleTex[i] = vec3(texture(frameTexture, vTexCoords.st + offsets[i]));
     }
     vec3 col = vec3(0.0);
+    //Here I multiply my texture values with kernel values and sum the results
     for(int i = 0; i < 9; i++)
+    {
         col += sampleTex[i] * kernel[i];
-    
+    }
     return vec4(col, 1.0);
 }
 subroutine(PostProcessingEffect)

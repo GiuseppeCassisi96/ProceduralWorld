@@ -65,6 +65,7 @@ void FrameBuffer::DrawFrameBuffer()
 	glDisable(GL_DEPTH_TEST); // prevents framebuffer rectangle from being discarded
 	glBindTexture(GL_TEXTURE_2D, frameBufferTexture);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glEnable(GL_DEPTH_TEST); //Enable again the depth test
 }
 
 void FrameBuffer::DeleteBuffers()

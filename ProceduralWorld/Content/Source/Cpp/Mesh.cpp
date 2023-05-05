@@ -87,7 +87,6 @@ void Mesh::SetupMesh()
 
 	/*If the 'meshPositions' vector is not empty I define my 'instanceVBO' that contains a model
 	 *matrix used for trees positioning*/
-
 	if (!meshPositions.empty())
 	{
 		glGenBuffers(1, &instanceVBO);
