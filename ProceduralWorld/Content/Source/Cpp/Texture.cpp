@@ -5,11 +5,11 @@
 
 
 
-Texture::Texture(GLenum textureEnum, int textureWidth, int textureHeight)
+Texture::Texture(GLenum textureUnit, int textureWidth, int textureHeight)
 {
 	// generate texture
 	glGenTextures(1, &textureID);
-	glActiveTexture(textureEnum);
+	glActiveTexture(textureUnit);
 	glBindTexture(GL_TEXTURE_2D, textureID);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -21,7 +21,7 @@ Texture::Texture(GLenum textureEnum, int textureWidth, int textureHeight)
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-Texture::Texture(const char* fileName, GLenum textureEnum)
+Texture::Texture(const char* fileName, GLenum textureUnit)
 {
 	/*I set the view option (Repeat, Clamp border, ecc...) of each axe (S and T -> U and V)
 	 * Target: specify the type of texture, we have a 2D texture so we put GL_TEXTURE_2D*/
@@ -39,7 +39,7 @@ Texture::Texture(const char* fileName, GLenum textureEnum)
 	if (data)
 	{
 		glGenTextures(1, &textureID);
-		glActiveTexture(textureEnum);
+		glActiveTexture(textureUnit);
 		//We bind the 'textureID' with textureEnum 
 		glBindTexture(GL_TEXTURE_2D, textureID);
 

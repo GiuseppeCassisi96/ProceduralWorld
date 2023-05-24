@@ -3,13 +3,13 @@
 #include <GLM/include/ext/quaternion_geometric.hpp>
 
 
-TerrainGeneration::TerrainGeneration(HeightMap& ElevationMap) : ElevationMap(std::move(ElevationMap))
+WorldGeneration::WorldGeneration(HeightMap& ElevationMap) : ElevationMap(std::move(ElevationMap))
 {
     ComputeMesh();
     SetupBuffers();
 }
 
-void TerrainGeneration::ComputeMesh()
+void WorldGeneration::ComputeMesh()
 {
     for (int i = 0; i < MAP_RESOLUTION; i++)
     {
@@ -42,6 +42,7 @@ void TerrainGeneration::ComputeMesh()
                 fi / fMeshResolution , //U
                 fj / fMeshResolution //V
             );
+            //Initially the normal is set to a zero vector
             vertex.Normal = glm::vec3(0.0f);
             vertices.push_back(vertex);
         }
@@ -71,7 +72,7 @@ void TerrainGeneration::ComputeMesh()
     ComputeNormals();
 }
 
-void TerrainGeneration::SetupBuffers()
+void WorldGeneration::SetupBuffers()
 {
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -98,8 +99,9 @@ void TerrainGeneration::SetupBuffers()
 
 }
 
-void TerrainGeneration::ComputeNormals()
+void WorldGeneration::ComputeNormals()
 {
+
     for(int i = 0; i < MAP_RESOLUTION - 1; i++)
     {
 	    for(int j = 0; j < MAP_RESOLUTION - 1; j++)
@@ -110,6 +112,7 @@ void TerrainGeneration::ComputeNormals()
             vertices[index].Normal = glm::normalize(glm::cross(firstEdge, secondEdge));
 	    }
     }
+    //I compute the normals of last column 
     for(int i = 0; i < MAP_RESOLUTION - 1; i++)
     {
         const int index = i * MAP_RESOLUTION + (MAP_RESOLUTION - 1);
@@ -117,7 +120,7 @@ void TerrainGeneration::ComputeNormals()
         glm::vec3 secondEdge = vertices[index + MAP_RESOLUTION].Position - vertices[index].Position;
         vertices[index].Normal = glm::normalize(glm::cross(secondEdge, firstEdge));
     }
-
+    //I compute the normals of last row 
     for (int j = 0; j < MAP_RESOLUTION - 1; j++)
     {
         const int index = (MAP_RESOLUTION - 1) * MAP_RESOLUTION + j;
@@ -127,14 +130,14 @@ void TerrainGeneration::ComputeNormals()
     }
 }
 
-void TerrainGeneration::DrawTerrain()
+void WorldGeneration::DrawTerrain()
 {
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
 
-void TerrainGeneration::ReComputeMesh()
+void WorldGeneration::ReComputeMesh()
 {
     for (int i = 0; i < MAP_RESOLUTION; i++)
     {
@@ -156,6 +159,13 @@ void TerrainGeneration::ReComputeMesh()
     ComputeNormals();
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(TerrainVertex), vertices.data(), GL_DYNAMIC_DRAW);
+}
+
+void WorldGeneration::DeleteBuffers()
+{
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
+    glDeleteVertexArrays(1, &VAO);
 }
 
 

@@ -9,6 +9,7 @@ public:
 	void BindFrameBuffer();
 	void UNBindFrameBuffer();
 	void DrawFrameBuffer();
+	void DeleteBuffers();
 	float FBORectangleVertices[24] =
 	{
 		// Coords    // texCoords
@@ -21,6 +22,9 @@ public:
 		-1.0f,  1.0f,  0.0f, 1.0f
 	};
 private:
+	/**
+	 * \brief Setup rectVBO and rectVAO of framebuffer rectangle
+	 */
 	void SetupRectangleBuffers();
 	unsigned int FBO, RBO, rectVAO, rectVBO;
 	unsigned int frameBufferTexture;

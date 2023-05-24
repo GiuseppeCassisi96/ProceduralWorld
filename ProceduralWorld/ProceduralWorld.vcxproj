@@ -177,8 +177,8 @@
     <None Include="Content\Source\Cpp\Shaders\FB.frag" />
     <None Include="Content\Source\Cpp\Shaders\FB.vert" />
     <None Include="Content\Source\Cpp\Shaders\NoiseGeneration.comp" />
-    <None Include="Content\Source\Cpp\Shaders\TerrainShader.frag" />
-    <None Include="Content\Source\Cpp\Shaders\TerrainShader.vert" />
+    <None Include="Content\Source\Cpp\Shaders\WorldShader.frag" />
+    <None Include="Content\Source\Cpp\Shaders\WorldShader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

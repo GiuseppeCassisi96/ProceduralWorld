@@ -10,13 +10,26 @@ class SkyBox
 {
 public:
 	SkyBox(std::string RootDir);
-	void SetupBuffer();
-	void CreateTexture(GLenum TextureUnit);
 	void DrawSkyBox(GLenum TextureUnit);
+	/**
+	 * \brief A vector that contains the directories of my textures
+	 */
 	std::vector<std::string> TexturesFacesDirs;
 private:
+	/**
+	* \brief Setups the buffers of my cube
+	*/
+	void SetupBuffer();
+	/**
+	 * \brief Create the SkyBox texture obj and loads the six textures of my cubemap. Apply filterings
+	 * at every texture
+	 */
+	void CreateTexture();
 	unsigned int VBO, VAO, EBO;
 	unsigned int skyBoxTexture;
+	/**
+	 * \brief Vertices of box
+	 */
 	const float vertices[24] = {
 	-1.0f, -1.0f,  1.0f,
 	 1.0f, -1.0f,  1.0f,

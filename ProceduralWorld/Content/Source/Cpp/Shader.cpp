@@ -77,7 +77,15 @@ Shader::Shader(const char* computeShaderPath)
 
 void Shader::DispatchCompute()
 {
+	/*Here I run the compute shader with a specific number of works groups. Each group has a
+	 *number of thread and represents the number of instancies of the compute shader. A group is
+	 *a collection of threads running in the same warp. A warp is a collection of cores. The first
+	 *group number can be intended as XDIM, the second group number can be intended as YDIM and
+	 *the third group number can be intended as ZDIM. glDispatchCompute is similar to lounch a
+	 *kernel in the CUDA API 
+	 */
 	glDispatchCompute(MAP_RESOLUTION, MAP_RESOLUTION, 1);
+	//With 'glMemoryBarrier' I wait until the compute shader has finish before to use the new output 
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }
 
@@ -100,7 +108,9 @@ void Shader::UseProgram() const
 
 void Shader::SetUniformMatrix4(const char* uniformParamName, const glm::mat4& value) const
 {
+	//I get the uniform location using 'program' and name of uniform
 	const int uniformParamLoc = glGetUniformLocation(program, uniformParamName);
+	//I set the uniform value using the location
 	glUniformMatrix4fv(uniformParamLoc, 1, GL_FALSE, glm::value_ptr(value));
 }
 

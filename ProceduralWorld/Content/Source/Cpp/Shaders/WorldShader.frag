@@ -20,14 +20,24 @@ uniform sampler2D Forest;
 uniform sampler2D Mountain;
 uniform samplerCube skybox;
 uniform bool toonShadingIsEnabled;
-uniform float specularFactor;
 // Subroutine Uniform (it is conceptually similar to a C pointer function)
 subroutine uniform  light illumination;
 
-const float range = 0.3;
+const float boundaryLineWidth = 0.3;
+//Number of transitions between color levels.
 const int toonLevels = 4;
+//Reciprocal of toonLevels  
 const float toonScaleFactor = 1.0 / toonLevels;
+/* The standard lambertian factor is calcolated using the cosine function and provides value
+between 0 and 1. I'm going to replace the cosine wave with several stairs, where every stair 
+is the size of this reciprocal 
 
+|      --|
+|    --  |
+|  --    |
+|--      |
+4 Color levels 
+*/
 
 in vec3 vNormal;
 in vec3 viewDir;
@@ -51,26 +61,42 @@ vec4 illuminationForTerrain()
     //Texture
     vec3 initialColor;
     float biomeValue = texture(BiomeMap, vUVCoord).r  ;   
-    biomeValue = clamp(biomeValue, -3.0f, 3.0f) ;
+    biomeValue = clamp(biomeValue, -3.0f, 3.0f);
+    /*I subdivide the biome space in 4 sub-space, each for every biomes. When the biomeValue is near 
+    to boundary line between two biomes, the two colors of the two biomes will be interpolated
+        firstLimit
+    --|-----||-----|--
+     LAWN        FOREST
+         SecondLimit
+    --|-----||-----|--
+    FOREST       SNOW
+         ThirdLimit
+    --|-----||-----|--
+     SNOW        MOUNTAIN
+     
+        1°     2°     3°     4°        SPACES
+     ------|------|------|------
+    */
     float firstBiomeLimit = -1.0;
     float secondBiomeLimit = 0.0;
     float thirdBiomeLimit =  1.5;
-    if(biomeValue <= secondBiomeLimit - range)
+    if(biomeValue <= secondBiomeLimit - boundaryLineWidth)
     {
         vec3 color1 = texture(Lawn, vUVCoord * 300.0).rgb;
         vec3 color2 = texture(Forest, vUVCoord * 300.0).rgb;
-        float minLimit = firstBiomeLimit - range; 
-        float maxLimit = firstBiomeLimit + range; 
+        float minLimit = firstBiomeLimit - boundaryLineWidth; 
+        float maxLimit = firstBiomeLimit + boundaryLineWidth; 
+       
         float interpValue = (biomeValue - minLimit) / (maxLimit - minLimit);
         interpValue = smoothstep(0.0, 1.0, interpValue);
         initialColor = mix(color1, color2, interpValue);
     }
-    else if(biomeValue <= thirdBiomeLimit - range)
+    else if(biomeValue <= thirdBiomeLimit - boundaryLineWidth)
     {
         vec3 color1 = texture(Forest, vUVCoord * 300.0).rgb;
         vec3 color2 = vec3(0.9, 0.9, 0.9);
-        float minLimit = secondBiomeLimit - range; 
-        float maxLimit = secondBiomeLimit + range; 
+        float minLimit = secondBiomeLimit - boundaryLineWidth; 
+        float maxLimit = secondBiomeLimit + boundaryLineWidth; 
         float interpValue = (biomeValue - minLimit) / (maxLimit - minLimit);
         interpValue = smoothstep(0.0, 1.0, interpValue);
         initialColor = mix(color1, color2, interpValue);
@@ -79,8 +105,8 @@ vec4 illuminationForTerrain()
     {
         vec3 color1 = vec3(0.9, 0.9, 0.9);
         vec3 color2 = texture(Mountain, vUVCoord * 300.0).rgb;
-        float minLimit = thirdBiomeLimit - range; 
-        float maxLimit = thirdBiomeLimit + range; 
+        float minLimit = thirdBiomeLimit - boundaryLineWidth; 
+        float maxLimit = thirdBiomeLimit + boundaryLineWidth; 
         float interpValue = (biomeValue - minLimit) / (maxLimit - minLimit);
         interpValue = smoothstep(0.0, 1.0, interpValue);
         initialColor = mix(color1, color2, interpValue);
@@ -105,6 +131,10 @@ vec4 illuminationForTerrain()
         vec3 H = normalize(L + V);
         if(toonShadingIsEnabled)
         {
+            /*We multiply the lambertian factor with the toonLevels, this provides a fraction
+            between zero and number of toonLevels. We use the 'ceil' function in order to obtain 
+            the nearest integer greater or equal to 'lambertian * toonLevels'. Then, we multiply the 
+            result with 'toonScaleFactor' in order to get one stair between 0 and 1*/
             lambertian = ceil(lambertian * toonLevels) * toonScaleFactor;
         }
         else
@@ -113,10 +143,8 @@ vec4 illuminationForTerrain()
             specAngle = max(dot(H, N), 0.0);
             // shininess application to the specular component
             specular = pow(specAngle, shininess);
-            specular *= specularFactor;
         }
         // We add diffusive and specular components to the final color
-        // N.B. ): in this implementation, the sum of the components can be different than 1
         color += lightIntensity * vec3( Kd * lambertian * initialColor +
                         Ks * specular * specularColor);
     }
@@ -127,7 +155,7 @@ vec4 illuminationForTerrain()
 subroutine(light)
 vec4 illuminationForModels()
 {
-//texture
+//TREE COLOR
     vec3 initialColor = vColor;
    
 //LIGHT COMPUTATION 
@@ -157,7 +185,6 @@ vec4 illuminationForModels()
             specAngle = max(dot(H, N), 0.0);
             // shininess application to the specular component
             specular = pow(specAngle, shininess);
-            specular *= specularFactor;
         }
         // We add diffusive and specular components to the final color
         // N.B. ): in this implementation, the sum of the components can be different than 1

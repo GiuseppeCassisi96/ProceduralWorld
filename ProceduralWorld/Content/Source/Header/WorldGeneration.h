@@ -12,13 +12,16 @@ struct TerrainVertex
 	glm::vec2 UVCoords;
 	glm::vec3 Normal;
 };
-class TerrainGeneration
+class WorldGeneration
 {
 public:
-	TerrainGeneration(HeightMap& ElevationMap);
+	WorldGeneration(HeightMap& ElevationMap);
 	void DrawTerrain();
+	/**
+	 * \brief Recompute the vertices positions and normals
+	 */
 	void ReComputeMesh();
-
+	void DeleteBuffers();
 	HeightMap ElevationMap;
 
 	struct TerrainMat
@@ -35,8 +38,18 @@ public:
 	TerrainMat terrainMaterial;
 	std::vector<TerrainVertex> vertices;
 private:
+	/**
+	 * \brief Compute the vertices positions using the ElevationMap and UV coords. Compute also the
+	 * indices of the mesh for an efficient mesh drawing.
+	 */
 	void ComputeMesh();
+	/**
+	 * \brief Setup the mesh buffers
+	 */
 	void SetupBuffers();
+	/**
+	 * \brief Compute the normals of mesh 
+	 */
 	void ComputeNormals();
 	std::vector<int> indices;
 	unsigned int VBO, VAO, EBO;

@@ -11,6 +11,7 @@ SkyBox::SkyBox(std::string RootDir)
 		RootDir + "front.jpg"
 	};
 	SetupBuffer();
+	CreateTexture();
 }
 
 void SkyBox::SetupBuffer()
@@ -27,7 +28,7 @@ void SkyBox::SetupBuffer()
 	glEnableVertexAttribArray(0);
 }
 
-void SkyBox::CreateTexture(GLenum TextureUnit)
+void SkyBox::CreateTexture()
 {
 	glGenTextures(1, &skyBoxTexture);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skyBoxTexture);
@@ -47,18 +48,8 @@ void SkyBox::CreateTexture(GLenum TextureUnit)
 			 *I currently assigning a texture to. I'm adding with 'i' to it in order to cycle through all
 			 *the sides
 			 */
-			glTexImage2D
-			(
-				GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-				0,
-				GL_RGB,
-				width,
-				height,
-				0,
-				GL_RGB,
-				GL_UNSIGNED_BYTE,
-				data
-			);
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,0,GL_RGB,width,height,0,
+				GL_RGB,GL_UNSIGNED_BYTE,data);
 			/*The cubemaps works in a left-handed system, while OpenGL works in a right-handed
 			 * system. In the case of cubemaps the front is positive z-direction 
 			 */
