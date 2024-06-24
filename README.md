@@ -1,2 +1,2 @@
-# ProceduralWorldProgetto
+# ProceduralWorld
 Procedural Word is a 3D application developed using OpenGL, where the world terrain is created in a procedurally way and some affects can be applied to it. The user can change dynamically the shape of terrain by changing some parameters. He can also select the effect to apply to the 3D world. The 3D terrain is populated by trees that will change dynamically with the terrain. He is also composed by four different biomes: Lawn, Forest, Snow and Mountain. The project was developed for an university course called "Real-time graphics programming" held by the professor D. Gadia.
